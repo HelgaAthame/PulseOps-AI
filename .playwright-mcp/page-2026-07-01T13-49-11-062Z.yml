@@ -1,0 +1,67 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e6]: P
+        - generic [ref=e7]: PulseOps
+      - navigation [ref=e8]:
+        - link "Обзор" [ref=e9] [cursor=pointer]:
+          - /url: /
+          - img [ref=e10]
+          - text: Обзор
+        - link "События" [ref=e15] [cursor=pointer]:
+          - /url: /events
+          - img [ref=e16]
+          - text: События
+        - link "Аналитика" [ref=e18] [cursor=pointer]:
+          - /url: /analytics
+          - img [ref=e19]
+          - text: Аналитика
+        - link "AI-аналитик" [ref=e21] [cursor=pointer]:
+          - /url: /ai
+          - img [ref=e22]
+          - text: AI-аналитик
+        - link "Настройки" [ref=e25] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e26]
+          - text: Настройки
+      - generic [ref=e29]: Учебный SaaS-проект
+    - generic [ref=e30]:
+      - banner [ref=e31]:
+        - generic [ref=e32]:
+          - img [ref=e33]
+          - generic [ref=e36]: Поиск по событиям и метрикам…
+        - button "Объяснить, что происходит" [ref=e37]:
+          - img
+          - text: Объяснить, что происходит
+      - main [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - heading "Обзор" [level=1] [ref=e41]
+            - paragraph [ref=e42]: Симуляция метрик SaaS в реальном времени
+          - generic [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e45]: MRR
+              - generic [ref=e46]: $0
+              - generic [ref=e47]: Месячный доход
+            - generic [ref=e48]:
+              - generic [ref=e49]: ARR
+              - generic [ref=e50]: $0
+              - generic [ref=e51]: Годовой доход
+            - generic [ref=e52]:
+              - generic [ref=e53]: Активные пользователи
+              - generic [ref=e54]: "0"
+              - generic [ref=e55]: За 30 дней
+            - generic [ref=e56]:
+              - generic [ref=e57]: Отток (churn)
+              - generic [ref=e58]: 0%
+              - generic [ref=e59]: За 30 дней
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]: График дохода
+              - generic [ref=e63]: Появится на Day 4 — Аналитика
+            - generic [ref=e64]:
+              - generic [ref=e65]: Живая лента событий
+              - generic [ref=e66]: Появится на Day 3 — События
+  - button "Open Next.js Dev Tools" [ref=e72] [cursor=pointer]:
+    - img [ref=e73]
