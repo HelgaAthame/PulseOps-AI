@@ -1,1 +1,1 @@
-export { UserEntity } from "./model/user.entity";
+export { users } from "./model/user.table";

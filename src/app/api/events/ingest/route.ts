@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { EventEntity, eventIngestSchema } from "@/entities/event";
-import { getDataSource } from "@/shared/api/db";
+import { events, eventIngestSchema } from "@/entities/event";
+import { db } from "@/shared/api/db";
 import { createClient } from "@/shared/api/supabase/server";
 
 export async function POST(request: Request) {
@@ -24,9 +24,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const dataSource = await getDataSource();
-  const event = dataSource.getRepository(EventEntity).create(parsed.data);
-  const saved = await dataSource.getRepository(EventEntity).save(event);
+  const [saved] = await db.insert(events).values(parsed.data).returning();
 
   return NextResponse.json({ event: saved }, { status: 201 });
 }

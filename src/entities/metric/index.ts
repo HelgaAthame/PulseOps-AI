@@ -1,4 +1,4 @@
-export { MetricEntity } from "./model/metric.entity";
+export { metrics, metricTypeEnum } from "./model/metric.table";
 export { METRIC_TYPES, type MetricType } from "./model/metric.types";
 export {
   metricQuerySchema,

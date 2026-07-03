@@ -1,1 +1,1 @@
-export { dataSource, getDataSource } from "./data-source";
+export { db } from "./client";
