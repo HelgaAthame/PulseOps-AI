@@ -5,6 +5,8 @@ import { EventEntity } from "@/entities/event/model/event.entity";
 import { MetricEntity } from "@/entities/metric/model/metric.entity";
 import { UserEntity } from "@/entities/user/model/user.entity";
 
+import { InitSchema1783092249369 } from "./migrations/1783092249369-InitSchema";
+
 const globalForDataSource = globalThis as unknown as {
   dataSource?: DataSource;
 };
@@ -17,7 +19,7 @@ export const dataSource =
     entities: [UserEntity, EventEntity, MetricEntity],
     // Явные импорты миграций добавляются сюда по мере их генерации —
     // glob-паттерны не работают в бандле Next.js (Turbopack/webpack).
-    migrations: [],
+    migrations: [InitSchema1783092249369],
     synchronize: false,
     logging: process.env.NODE_ENV === "development",
   });
