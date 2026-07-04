@@ -60,18 +60,22 @@ export async function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-border bg-background p-5 shadow-sm lg:col-span-2">
+      {/* Обе панели в одной grid-строке фиксированной высоты (на десктопе):
+          график и лента flex-заполняют её, поэтому визуально равны. */}
+      <div className="grid grid-cols-1 gap-4 lg:h-90 lg:grid-cols-3">
+        <div className="flex flex-col rounded-xl border border-border bg-background p-5 shadow-sm lg:col-span-2">
           <div className="mb-4 text-sm font-medium">MRR over time</div>
-          <MrrChart data={series} />
+          <div className="min-h-60 flex-1 lg:min-h-0">
+            <MrrChart data={series} className="h-full" />
+          </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
+        <div className="flex flex-col rounded-xl border border-border bg-background p-5 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <div className="text-sm font-medium">Live event feed</div>
             <SimulateButton />
           </div>
-          <div className="mt-3">
+          <div className="mt-3 flex-1 lg:min-h-0 lg:overflow-y-auto">
             <EventFeed events={recent} />
           </div>
         </div>

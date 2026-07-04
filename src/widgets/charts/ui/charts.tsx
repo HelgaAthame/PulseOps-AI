@@ -13,6 +13,7 @@ import {
 
 import { type EventType } from "@/entities/event";
 import { type DailyPoint, type EventTypeCount } from "@/entities/metric";
+import { cn } from "@/shared/lib/utils";
 import {
   ChartContainer,
   ChartTooltip,
@@ -24,9 +25,20 @@ const mrrConfig = {
   mrr: { label: "MRR", color: "var(--chart-1)" },
 } satisfies ChartConfig;
 
-export function MrrChart({ data }: { data: DailyPoint[] }) {
+// className переопределяет высоту: дефолт 240px, но на Overview график
+// заполняет высоту панели (h-full), чтобы сравняться с live-лентой.
+export function MrrChart({
+  data,
+  className,
+}: {
+  data: DailyPoint[];
+  className?: string;
+}) {
   return (
-    <ChartContainer config={mrrConfig} className="h-[240px] w-full">
+    <ChartContainer
+      config={mrrConfig}
+      className={cn("h-60 w-full", className)}
+    >
       <AreaChart data={data} margin={{ left: 4, right: 8, top: 8 }}>
         <defs>
           <linearGradient id="fillMrr" x1="0" y1="0" x2="0" y2="1">

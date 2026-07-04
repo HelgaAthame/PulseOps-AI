@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 
 import { db } from "@/shared/api/db";
 
@@ -49,6 +49,29 @@ export async function listRecentEvents(ownerId: string, limit = 20) {
     .where(eq(events.ownerId, ownerId))
     .orderBy(desc(events.createdAt))
     .limit(limit);
+}
+
+/** Всего событий владельца — для пагинации (кол-во страниц). */
+export async function countOwnerEvents(ownerId: string): Promise<number> {
+  const [row] = await db
+    .select({ value: count() })
+    .from(events)
+    .where(eq(events.ownerId, ownerId));
+  return row?.value ?? 0;
+}
+
+/** Страница событий владельца (свежие сверху) — серверная пагинация. */
+export async function listEventsPage(
+  ownerId: string,
+  { limit, offset }: { limit: number; offset: number }
+) {
+  return db
+    .select()
+    .from(events)
+    .where(eq(events.ownerId, ownerId))
+    .orderBy(desc(events.createdAt))
+    .limit(limit)
+    .offset(offset);
 }
 
 /**

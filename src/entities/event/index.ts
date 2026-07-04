@@ -11,6 +11,8 @@ export {
   insertEvent,
   insertEvents,
   listRecentEvents,
+  listEventsPage,
+  countOwnerEvents,
   listAllEvents,
   replaceOwnerEvents,
   type EventRow,
