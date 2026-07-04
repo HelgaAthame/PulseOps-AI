@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { ensureUserProfile } from "@/entities/user";
 import { createClient } from "@/shared/api/supabase/server";
 import { Sidebar } from "@/widgets/sidebar";
 import { Topbar } from "@/widgets/topbar";
@@ -16,6 +17,10 @@ export default async function DashboardLayout({
 
   if (!user) {
     redirect("/login");
+  }
+
+  if (user.email) {
+    await ensureUserProfile(user.id, user.email);
   }
 
   return (

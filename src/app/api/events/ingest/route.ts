@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { events, eventIngestSchema } from "@/entities/event";
-import { db } from "@/shared/api/db";
+import { eventIngestSchema, insertEvent } from "@/entities/event";
 import { createClient } from "@/shared/api/supabase/server";
 
 export async function POST(request: Request) {
@@ -18,13 +17,10 @@ export async function POST(request: Request) {
   const parsed = eventIngestSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.flatten() },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const [saved] = await db.insert(events).values(parsed.data).returning();
+  const event = await insertEvent(user.id, parsed.data);
 
-  return NextResponse.json({ event: saved }, { status: 201 });
+  return NextResponse.json({ event }, { status: 201 });
 }

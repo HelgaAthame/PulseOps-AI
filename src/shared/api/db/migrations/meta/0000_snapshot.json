@@ -1,5 +1,5 @@
 {
-  "id": "11a9baf8-6b0f-4fe3-ba09-f70c747dc30c",
+  "id": "8e2eb2cc-3c40-4e37-a285-5a0fea1e8f5a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -15,16 +15,22 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "type": {
           "name": "type",
           "type": "event_type",
           "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -43,6 +49,27 @@
         }
       },
       "indexes": {
+        "events_owner_created_idx": {
+          "name": "events_owner_created_idx",
+          "columns": [
+            {
+              "expression": "owner_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "events_type_idx": {
           "name": "events_type_idx",
           "columns": [
@@ -57,30 +84,15 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "events_created_at_idx": {
-          "name": "events_created_at_idx",
-          "columns": [
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
-        "events_user_id_users_id_fk": {
-          "name": "events_user_id_users_id_fk",
+        "events_owner_id_users_id_fk": {
+          "name": "events_owner_id_users_id_fk",
           "tableFrom": "events",
           "tableTo": "users",
           "columnsFrom": [
-            "user_id"
+            "owner_id"
           ],
           "columnsTo": [
             "id"
@@ -106,6 +118,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "type": {
           "name": "type",
           "type": "metric_type",
@@ -128,24 +146,21 @@
         }
       },
       "indexes": {
-        "metrics_type_idx": {
-          "name": "metrics_type_idx",
+        "metrics_owner_type_computed_idx": {
+          "name": "metrics_owner_type_computed_idx",
           "columns": [
+            {
+              "expression": "owner_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "type",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "metrics_computed_at_idx": {
-          "name": "metrics_computed_at_idx",
-          "columns": [
+            },
             {
               "expression": "computed_at",
               "isExpression": false,
@@ -159,7 +174,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "metrics_owner_id_users_id_fk": {
+          "name": "metrics_owner_id_users_id_fk",
+          "tableFrom": "metrics",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

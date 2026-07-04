@@ -17,17 +17,22 @@ export const events = pgTable(
   "events",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    type: eventTypeEnum("type").notNull(),
-    userId: uuid("user_id")
+    // Аккаунт-владелец симулируемого воркспейса (изоляция данных между
+    // залогиненными пользователями).
+    ownerId: uuid("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // Синтетический клиент симулируемого SaaS — НЕ аккаунт приложения,
+    // поэтому без FK. Уникальные customerId = "active users" в аналитике.
+    customerId: uuid("customer_id").notNull(),
+    type: eventTypeEnum("type").notNull(),
     payload: jsonb("payload").$type<Record<string, unknown> | null>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (table) => [
+    index("events_owner_created_idx").on(table.ownerId, table.createdAt),
     index("events_type_idx").on(table.type),
-    index("events_created_at_idx").on(table.createdAt),
   ]
 );
