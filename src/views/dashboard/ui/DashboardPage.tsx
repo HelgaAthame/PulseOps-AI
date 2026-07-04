@@ -1,7 +1,8 @@
 import { listAllEvents, listRecentEvents } from "@/entities/event";
-import { computeAnalytics } from "@/entities/metric";
+import { computeAnalytics, computeDailySeries } from "@/entities/metric";
 import { createClient } from "@/shared/api/supabase/server";
 import { formatCurrency, formatPercent } from "@/shared/lib/format";
+import { MrrChart } from "@/widgets/charts";
 import { EventFeed, SimulateButton } from "@/widgets/event-feed";
 
 export async function DashboardPage() {
@@ -18,6 +19,7 @@ export async function DashboardPage() {
     : [[], []];
 
   const analytics = computeAnalytics(allEvents);
+  const series = computeDailySeries(allEvents, 60);
 
   const metrics = [
     { label: "MRR", value: formatCurrency(analytics.mrr), hint: "Monthly recurring revenue" },
@@ -60,10 +62,8 @@ export async function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-xl border border-border bg-background p-5 shadow-sm lg:col-span-2">
-          <div className="text-sm font-medium">Revenue chart</div>
-          <div className="mt-4 flex h-56 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-            Coming on Day 4 — Analytics (charts)
-          </div>
+          <div className="mb-4 text-sm font-medium">MRR over time</div>
+          <MrrChart data={series} />
         </div>
 
         <div className="rounded-xl border border-border bg-background p-5 shadow-sm">

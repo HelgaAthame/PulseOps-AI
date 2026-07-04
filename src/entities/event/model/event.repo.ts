@@ -7,6 +7,22 @@ import { type EventIngestInput } from "./event.schema";
 
 export type EventRow = typeof events.$inferSelect;
 
+type SeedRow = {
+  type: EventRow["type"];
+  customerId: string;
+  payload: Record<string, unknown> | null;
+  createdAt: Date;
+};
+
+/** Заменяет всю историю событий владельца (для сида демо-данных). */
+export async function replaceOwnerEvents(ownerId: string, rows: SeedRow[]) {
+  await db.delete(events).where(eq(events.ownerId, ownerId));
+  if (rows.length > 0) {
+    await db.insert(events).values(rows.map((row) => ({ ownerId, ...row })));
+  }
+  return rows.length;
+}
+
 export async function insertEvent(ownerId: string, input: EventIngestInput) {
   const [row] = await db
     .insert(events)

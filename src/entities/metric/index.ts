@@ -8,3 +8,9 @@ export {
   computeAnalytics,
   type AnalyticsSnapshot,
 } from "./model/analytics";
+export {
+  computeDailySeries,
+  computeEventTypeCounts,
+  type DailyPoint,
+  type EventTypeCount,
+} from "./model/timeseries";

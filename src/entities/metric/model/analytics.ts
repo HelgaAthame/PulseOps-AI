@@ -38,7 +38,14 @@ export function computeAnalytics(events: EventRow[]): AnalyticsSnapshot {
   let revenue = 0;
   let signups = 0;
 
-  for (const event of events) {
+  // По возрастанию времени — чтобы для клиента с несколькими подписками
+  // побеждала последняя (иначе MRR зависит от порядка выборки).
+  const sorted = [...events].sort(
+    (a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+  for (const event of sorted) {
     const createdMs = new Date(event.createdAt).getTime();
     if (now - createdMs <= THIRTY_DAYS_MS) {
       activeCustomers.add(event.customerId);

@@ -146,6 +146,6 @@
   /* Вордмарк — серебристый металлик. В светлой теме серебро сливается со
      светлым фоном, поэтому затемняем и добавляем контраст (в тёмной — как есть). */
   html:not(.dark) .logo-wordmark {
-    filter: brightness(0.7) contrast(0.5) saturate(1.5);
+    filter: brightness(0.8) saturate(2);
   }
 }

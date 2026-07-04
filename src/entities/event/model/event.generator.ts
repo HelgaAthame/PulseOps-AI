@@ -72,3 +72,40 @@ export function generateEvents(count: number): GeneratedEvent[] {
     return { type, customerId: pick(customerPool), payload: payloadFor(type) };
   });
 }
+
+export type HistoricalEvent = GeneratedEvent & { createdAt: Date };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Генерирует реалистичную историю событий за последние `days` дней с
+ * нарастающим объёмом (свежих дней больше) — чтобы графики MRR/выручки
+ * показывали рост. Пул клиентов расширяется со временем.
+ */
+export function generateHistory(days = 60): HistoricalEvent[] {
+  const events: HistoricalEvent[] = [];
+  const now = Date.now();
+  const customers: string[] = [];
+
+  for (let d = days - 1; d >= 0; d--) {
+    const dayStart = now - d * DAY_MS;
+    const progress = (days - d) / days; // 0..1, растёт к сегодня
+    const count = 2 + Math.round(progress * 8) + Math.floor(Math.random() * 4);
+
+    for (let i = 0; i < count; i++) {
+      if (customers.length === 0 || Math.random() < 0.45) {
+        customers.push(crypto.randomUUID());
+      }
+      const type = pick(WEIGHTED_TYPES);
+      const createdAt = new Date(dayStart + Math.floor(Math.random() * DAY_MS));
+      events.push({
+        type,
+        customerId: pick(customers),
+        payload: payloadFor(type),
+        createdAt,
+      });
+    }
+  }
+
+  return events;
+}
