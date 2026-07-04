@@ -23,9 +23,9 @@ export function Logo({ className }: { className?: string }) {
       src="/logo/wordmark-compact.png"
       alt="PulseOps"
       width={1287}
-      height={189}
+      height={198}
       priority
-      className={cn("h-6 w-auto", className)}
+      className={cn("logo-wordmark h-6 w-auto", className)}
     />
   );
 }
