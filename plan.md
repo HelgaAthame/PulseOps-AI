@@ -18,7 +18,7 @@
 | Day 1 | Каркас UI (Next.js, Tailwind, shadcn/ui, layout) | ✅ |
 | Day 2 | БД + Auth (Drizzle, Supabase Auth, защита роутов) | ✅ |
 | Day 3 | Event-система (генератор + живая лента) | ✅ |
-| Auth+ | Современная авторизация (Google, Passkeys, CAPTCHA) | 🚧 код готов, нужна настройка сервисов |
+| Auth+ | Авторизация: Passkeys ✅, Google ✅ (вживую), Turnstile ⬜ | 🚧 |
 | Day 4 | Analytics-движок (MRR/churn, графики) | 🚧 движок ✅, графики ⬜ |
 | Day 5 | Realtime (Supabase subscriptions) | ⬜ |
 | Day 6 | AI-аналитик («Explain this system») | ⬜ |
@@ -129,7 +129,7 @@ src/
 | Метод | Код | Что нужно от пользователя, чтобы заработало |
 |-------|-----|---------------------------------------------|
 | Email + пароль | ✅ работает | — (готово на Day 2) |
-| **Google OAuth** | ✅ написан | Завести OAuth-приложение в Google Cloud → вписать Client ID/Secret **в Supabase Dashboard** (не в наш .env). Добавить redirect URL. |
+| **Google OAuth** | ✅ работает (проверено вживую) | Настроено: OAuth client в Google Cloud (redirect на `<ref>.supabase.co/auth/v1/callback`), Client ID/Secret в Supabase, Redirect URLs `http://localhost:3000/**`. Вход через Google → callback → профиль в public.users подтверждён. |
 | **Passkeys / биометрия** 🌟 | ✅ работает (проверено вживую) | Включено в Dashboard (RP ID `localhost`, origin `http://localhost:3000`). Регистрация и вход по Windows Hello прошли end-to-end. На проде — добавить домен в RP origins. |
 | **Turnstile CAPTCHA** | ✅ написан | Завести бесплатный Cloudflare Turnstile → Site Key в `.env` (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`), Secret Key **в Supabase Dashboard** + включить Captcha protection. |
 | 2FA (TOTP) | 💡 бэклог | Избыточно при passkeys; отложено. |
