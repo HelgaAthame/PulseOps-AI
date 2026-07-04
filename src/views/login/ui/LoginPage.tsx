@@ -10,7 +10,7 @@ import { createClient } from "@/shared/api/supabase/client";
 import {
   GoogleButton,
   PasskeySignInButton,
-  TurnstileWidget,
+  CaptchaWidget,
 } from "@/features/auth";
 
 type Mode = "sign-in" | "sign-up";
@@ -32,8 +32,8 @@ export function LoginPage() {
     setLoading(true);
 
     const supabase = createClient();
-    // captchaToken передаётся только когда Turnstile настроен; иначе undefined
-    // (Supabase проверяет капчу, только если она включена в проекте).
+    // captchaToken передаётся только когда капча (hCaptcha) настроена; иначе
+    // undefined (Supabase проверяет капчу, только если она включена в проекте).
     const options = captchaToken ? { captchaToken } : undefined;
 
     if (mode === "sign-in") {
@@ -136,7 +136,7 @@ export function LoginPage() {
             />
           </div>
 
-          <TurnstileWidget onToken={setCaptchaToken} />
+          <CaptchaWidget onToken={setCaptchaToken} />
 
           {notice && <p className="text-sm text-muted-foreground">{notice}</p>}
           {error && <p className="text-sm text-destructive">{error}</p>}

@@ -1,5 +1,5 @@
 export { GoogleButton } from "./ui/GoogleButton";
 export { PasskeySignInButton } from "./ui/PasskeySignInButton";
 export { PasskeyManager } from "./ui/PasskeyManager";
-export { TurnstileWidget } from "./ui/TurnstileWidget";
+export { CaptchaWidget } from "./ui/CaptchaWidget";
 export { SignOutButton } from "./ui/SignOutButton";

@@ -18,7 +18,7 @@
 | Day 1 | Каркас UI (Next.js, Tailwind, shadcn/ui, layout) | ✅ |
 | Day 2 | БД + Auth (Drizzle, Supabase Auth, защита роутов) | ✅ |
 | Day 3 | Event-система (генератор + живая лента) | ✅ |
-| Auth+ | Авторизация: Passkeys ✅, Google ✅ (вживую), Turnstile ⬜ | 🚧 |
+| Auth+ | Авторизация: Passkeys ✅, Google ✅ (вживую), hCaptcha ⬜ | 🚧 |
 | Day 4 | Analytics-движок (MRR/churn, графики) | 🚧 движок ✅, графики ⬜ |
 | Day 5 | Realtime (Supabase subscriptions) | ⬜ |
 | Day 6 | AI-аналитик («Explain this system») | ⬜ |
@@ -79,7 +79,7 @@ src/
 ├── widgets/                  # композитные блоки UI
 │   ├── sidebar/  topbar/  event-feed/
 ├── features/                 # пользовательские действия
-│   └── auth/                 # Google/passkey/Turnstile/sign-out кнопки
+│   └── auth/                 # Google/passkey/hCaptcha/sign-out кнопки
 ├── entities/                 # бизнес-сущности (таблицы + zod + хелперы)
 │   ├── user/  event/  metric/
 ├── shared/                   # переиспользуемое
@@ -131,35 +131,39 @@ src/
 | Email + пароль | ✅ работает | — (готово на Day 2) |
 | **Google OAuth** | ✅ работает (проверено вживую) | Настроено: OAuth client в Google Cloud (redirect на `<ref>.supabase.co/auth/v1/callback`), Client ID/Secret в Supabase, Redirect URLs `http://localhost:3000/**`. Вход через Google → callback → профиль в public.users подтверждён. |
 | **Passkeys / биометрия** 🌟 | ✅ работает (проверено вживую) | Включено в Dashboard (RP ID `localhost`, origin `http://localhost:3000`). Регистрация и вход по Windows Hello прошли end-to-end. На проде — добавить домен в RP origins. |
-| **Turnstile CAPTCHA** | ✅ написан | Завести бесплатный Cloudflare Turnstile → Site Key в `.env` (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`), Secret Key **в Supabase Dashboard** + включить Captcha protection. |
+| **hCaptcha CAPTCHA** | ✅ написан | Cloudflare заблокировал регистрацию (VPN/датацентр-IP), поэтому выбран **hCaptcha** (Supabase поддерживает и его). Site Key в `.env` (`NEXT_PUBLIC_HCAPTCHA_SITE_KEY`), Secret Key **в Supabase Dashboard** + включить Captcha protection (провайдер hCaptcha). |
 | 2FA (TOTP) | 💡 бэклог | Избыточно при passkeys; отложено. |
 
 ### ✅ Что уже сделано в коде (Auth)
 - Браузерный Supabase-клиент включает passkeys (`auth.experimental.passkey`).
 - `features/auth/`: `GoogleButton`, `PasskeySignInButton`, `RegisterPasskeyButton`,
-  `TurnstileWidget`, `SignOutButton`.
+  `CaptchaWidget` (hCaptcha), `SignOutButton`.
 - Страница входа `/login`: кнопки Google + passkey, разделитель, форма
-  email/пароль с передачей `captchaToken` (когда Turnstile настроен).
+  email/пароль с передачей `captchaToken` (когда hCaptcha настроен).
 - `/auth/callback` — обмен OAuth-кода на сессию (PKCE).
 - `/settings` — карточка аккаунта + **менеджер passkeys** (`PasskeyManager`):
   список зарегистрированных (имя, когда добавлен/использован), добавление и
   удаление через `supabase.auth.passkey.list()/registerPasskey()/passkey.delete()`.
   Passkeys хранятся в beta-таблице `auth.webauthn_credentials` (не `mfa_factors`).
 - Кнопка выхода в topbar.
-- `TurnstileWidget` — no-op, пока не задан site key (вход не блокируется).
+- `CaptchaWidget` — no-op, пока не задан site key (вход не блокируется).
 
 ### 🔧 Чеклист настройки для пользователя (пошагово)
-1. **Google OAuth:** Google Cloud Console → APIs & Services → Credentials →
-   создать OAuth client (Web). Authorized redirect URI:
-   `https://<project-ref>.supabase.co/auth/v1/callback`. Client ID/Secret →
-   Supabase Dashboard → Authentication → Providers → Google → включить, вставить.
+1. **Google OAuth:** ✅ настроено и работает. Google Cloud → OAuth client (Web),
+   redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`, Client ID/
+   Secret в Supabase, test users в Audience.
+   ⚠️ **НЕ ЗАБЫТЬ на Day 7 (деплой):** опубликовать OAuth-приложение
+   (Google Auth Platform → **Publish app** → In production), иначе входить
+   смогут только тест-пользователи, а refresh-токены живут 7 дней. Scope
+   базовые (email/profile) → публикация без ревью Google, в один клик.
 2. **Passkeys:** Supabase Dashboard → Authentication → Passkeys → включить.
    RP Display Name: `PulseOps`. RP ID: `localhost` (для dev) или домен прода.
    RP Origins: `http://localhost:3000` (dev) и/или прод-URL.
-3. **Turnstile:** Cloudflare → Turnstile → создать виджет (домен `localhost` для
-   dev). Site Key → `.env.local` (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`). Secret Key →
+3. **hCaptcha:** dashboard.hcaptcha.com → создать sitekey (hostname `localhost`).
+   Site Key → `.env.local` (`NEXT_PUBLIC_HCAPTCHA_SITE_KEY`). Secret Key →
    Supabase Dashboard → Authentication → Attack Protection → Captcha → включить,
-   выбрать Turnstile, вставить secret.
+   выбрать hCaptcha, вставить secret.
+   (Cloudflare Turnstile не подошёл — заблокировал регистрацию с VPN/датацентр-IP.)
 
 > Всё это можно включать по отдельности и в любой момент — код уже готов
 > «повернуть выключатель». Без настройки работает вход по email/паролю.
@@ -172,12 +176,12 @@ src/
 - **Google OAuth:** client id/secret настраиваются в Supabase Dashboard;
   приложение вызывает `supabase.auth.signInWithOAuth({ provider: 'google' })`.
   Нужен callback-роут `/auth/callback` для обмена кода на сессию.
-- **Turnstile:** современнее и приватнее reCAPTCHA. Site key — публичный
+- **hCaptcha:** приватная альтернатива reCAPTCHA. Site key — публичный
   (фронтенд), secret — в Supabase (он сам верифицирует токен).
 
 **Env-переменные авторизации** (плейсхолдеры, значения подставит пользователь):
 - `NEXT_PUBLIC_SITE_URL` — базовый URL для OAuth/passkey redirect.
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` — публичный ключ Turnstile.
+- `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` — публичный ключ hCaptcha.
 
 ---
 
@@ -269,6 +273,9 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 - ⬜ Анимации, loading/empty states, dark mode, spacing
 - ⬜ README на английском (для рекрутеров)
 - ⬜ Деплой на Vercel (+ интеграции Supabase↔GitHub/Vercel, см. бэклог)
+- ⬜ **Auth под прод:** опубликовать Google OAuth (Publish app → In production);
+  обновить в Google Cloud redirect и в Supabase Site URL / Redirect URLs на
+  прод-домен; passkeys RP ID/origins → прод-домен; hCaptcha hostname → прод.
 
 ---
 
