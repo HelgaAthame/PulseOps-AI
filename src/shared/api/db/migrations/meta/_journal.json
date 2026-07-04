@@ -8,6 +8,13 @@
       "when": 1783145679883,
       "tag": "0000_great_maddog",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783182234671,
+      "tag": "0001_enable_events_realtime",
+      "breakpoints": true
     }
   ]
 }

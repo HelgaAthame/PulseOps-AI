@@ -27,7 +27,7 @@ export default async function DashboardLayout({
     <div className="flex h-dvh overflow-hidden">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Topbar />
+        <Topbar userId={user.id} />
         <main className="min-w-0 flex-1 overflow-y-auto bg-muted/30">
           {children}
         </main>
