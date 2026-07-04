@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import { cn } from "@/shared/lib/utils";
 
-/** Фирменный знак — реальный логотип (кольцо с пульсом), вырезанный из макета. */
+/** Фирменный знак — кольцо с пульсом (для компактных мест/фавикона). */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <Image
@@ -16,14 +16,16 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-/** Знак + вордмарк «PulseOps» (Ops — золотом, как в фирстиле). */
+/** Основной логотип — реальный вордмарк PULSEOPS (вырезан из макета, прозрачный фон). */
 export function Logo({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <LogoMark className="h-6" />
-      <span className="text-sm font-semibold tracking-tight">
-        Pulse<span className="text-primary">Ops</span>
-      </span>
-    </div>
+    <Image
+      src="/logo/wordmark-compact.png"
+      alt="PulseOps"
+      width={1287}
+      height={189}
+      priority
+      className={cn("h-6 w-auto", className)}
+    />
   );
 }
