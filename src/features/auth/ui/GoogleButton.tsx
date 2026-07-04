@@ -58,7 +58,7 @@ export function GoogleButton({
       disabled={loading}
     >
       <GoogleIcon />
-      Продолжить с Google
+      Continue with Google
     </Button>
   );
 }

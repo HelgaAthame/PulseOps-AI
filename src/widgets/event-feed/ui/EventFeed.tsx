@@ -11,9 +11,9 @@ export function EventFeed({ events }: EventFeedProps) {
   if (events.length === 0) {
     return (
       <div className="flex h-full min-h-40 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border p-6 text-center">
-        <p className="text-sm font-medium">Событий пока нет</p>
+        <p className="text-sm font-medium">No events yet</p>
         <p className="text-xs text-muted-foreground">
-          Нажмите «Смоделировать активность», чтобы сгенерировать поток событий
+          Click “Simulate activity” to generate an event stream
         </p>
       </div>
     );
@@ -46,7 +46,7 @@ export function EventFeed({ events }: EventFeedProps) {
                 )}
               </div>
               <span className="text-xs text-muted-foreground">
-                клиент {event.customerId.slice(0, 8)}
+                customer {event.customerId.slice(0, 8)}
               </span>
             </div>
 

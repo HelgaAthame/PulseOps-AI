@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { Logo } from "@/shared/ui/logo";
 import { createClient } from "@/shared/api/supabase/client";
 import {
   GoogleButton,
@@ -67,7 +68,7 @@ export function LoginPage() {
     }
 
     if (!data.session) {
-      setNotice("Проверьте почту и подтвердите регистрацию, затем войдите.");
+      setNotice("Check your email to confirm the account, then sign in.");
       setMode("sign-in");
       return;
     }
@@ -79,22 +80,17 @@ export function LoginPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-sm rounded-xl border border-border bg-background p-6 shadow-sm">
-        <div className="mb-6 flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">P</span>
-          </div>
-          <span className="text-sm font-semibold tracking-tight">
-            PulseOps
-          </span>
+        <div className="mb-6">
+          <Logo />
         </div>
 
         <h1 className="text-lg font-semibold tracking-tight">
-          {mode === "sign-in" ? "Вход" : "Регистрация"}
+          {mode === "sign-in" ? "Sign in" : "Sign up"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {mode === "sign-in"
-            ? "Войдите, чтобы открыть дашборд"
-            : "Создайте аккаунт, чтобы начать"}
+            ? "Sign in to open your dashboard"
+            : "Create an account to get started"}
         </p>
 
         <div className="mt-5 flex flex-col gap-2">
@@ -104,7 +100,7 @@ export function LoginPage() {
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
-          или по email
+          or with email
           <span className="h-px flex-1 bg-border" />
         </div>
 
@@ -122,7 +118,7 @@ export function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password">Пароль</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -143,10 +139,10 @@ export function LoginPage() {
 
           <Button type="submit" disabled={loading} className="w-full">
             {loading
-              ? "Загрузка…"
+              ? "Loading…"
               : mode === "sign-in"
-                ? "Войти"
-                : "Зарегистрироваться"}
+                ? "Sign in"
+                : "Sign up"}
           </Button>
         </form>
 
@@ -156,8 +152,8 @@ export function LoginPage() {
           className="mt-4 text-sm text-muted-foreground underline-offset-4 hover:underline"
         >
           {mode === "sign-in"
-            ? "Нет аккаунта? Зарегистрироваться"
-            : "Уже есть аккаунт? Войти"}
+            ? "No account? Sign up"
+            : "Already have an account? Sign in"}
         </button>
       </div>
     </div>

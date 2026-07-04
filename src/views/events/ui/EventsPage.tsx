@@ -14,9 +14,9 @@ export async function EventsPage() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">События</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Events</h1>
           <p className="text-sm text-muted-foreground">
-            Поток бизнес-событий симулируемого SaaS
+            Business event stream of the simulated SaaS
           </p>
         </div>
         <SimulateButton count={12} />

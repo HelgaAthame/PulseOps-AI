@@ -79,12 +79,11 @@ export function PasskeyManager() {
       {items === null ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
-          Загрузка passkeys…
+          Loading passkeys…
         </div>
       ) : items.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Пока нет ни одного passkey. Добавьте первый — и сможете входить по
-          биометрии.
+          No passkeys yet. Add one to sign in with biometrics.
         </p>
       ) : (
         <ul className="flex flex-col divide-y divide-border">
@@ -95,12 +94,12 @@ export function PasskeyManager() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium">
-                  {pk.friendly_name || "Без названия"}
+                  {pk.friendly_name || "Unnamed"}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  добавлен {formatRelativeTime(pk.created_at)}
+                  added {formatRelativeTime(pk.created_at)}
                   {pk.last_used_at
-                    ? ` · использован ${formatRelativeTime(pk.last_used_at)}`
+                    ? ` · used ${formatRelativeTime(pk.last_used_at)}`
                     : ""}
                 </div>
               </div>
@@ -108,8 +107,8 @@ export function PasskeyManager() {
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Удалить passkey"
-                title="Удалить passkey"
+                aria-label="Delete passkey"
+                title="Delete passkey"
                 onClick={() => handleDelete(pk.id)}
                 disabled={deletingId === pk.id}
               >
@@ -138,7 +137,7 @@ export function PasskeyManager() {
         ) : (
           <Plus className="size-4" />
         )}
-        Добавить passkey
+        Add passkey
       </Button>
     </div>
   );

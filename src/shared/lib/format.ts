@@ -14,9 +14,9 @@ export function formatPercent(value: number, digits = 1): string {
   return `${(value * 100).toFixed(digits)}%`;
 }
 
-const rtf = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
-/** Относительное время на русском: «только что», «5 секунд назад», «2 часа назад». */
+/** Относительное время: «just now», «5 seconds ago», «2 hours ago». */
 export function formatRelativeTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   const diffSec = Math.round((d.getTime() - Date.now()) / 1000);

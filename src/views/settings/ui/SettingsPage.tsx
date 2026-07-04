@@ -10,14 +10,12 @@ export async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Настройки</h1>
-        <p className="text-sm text-muted-foreground">
-          Аккаунт и безопасность
-        </p>
+        <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
+        <p className="text-sm text-muted-foreground">Account and security</p>
       </div>
 
       <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
-        <div className="text-sm font-medium">Аккаунт</div>
+        <div className="text-sm font-medium">Account</div>
         <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
           <dt className="text-muted-foreground">Email</dt>
           <dd>{user?.email ?? "—"}</dd>
@@ -27,10 +25,10 @@ export async function SettingsPage() {
       </div>
 
       <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
-        <div className="text-sm font-medium">Passkey / биометрия</div>
+        <div className="text-sm font-medium">Passkey / biometrics</div>
         <p className="mt-1 mb-4 text-sm text-muted-foreground">
-          Входите по Face ID, Touch ID или Windows Hello — без пароля. Здесь
-          видны все ваши passkeys; лишние можно удалить.
+          Sign in with Face ID, Touch ID or Windows Hello — no password. All your
+          passkeys are listed here; you can remove the ones you don&apos;t need.
         </p>
         <PasskeyManager />
       </div>

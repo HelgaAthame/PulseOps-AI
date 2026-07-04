@@ -15,9 +15,9 @@ export type NavItem = {
 
 /** Пункты бокового меню дашборда. */
 export const navItems: NavItem[] = [
-  { title: "Обзор", href: "/", icon: LayoutDashboard },
-  { title: "События", href: "/events", icon: Activity },
-  { title: "Аналитика", href: "/analytics", icon: BarChart3 },
-  { title: "AI-аналитик", href: "/ai", icon: Sparkles },
-  { title: "Настройки", href: "/settings", icon: Settings },
+  { title: "Overview", href: "/", icon: LayoutDashboard },
+  { title: "Events", href: "/events", icon: Activity },
+  { title: "Analytics", href: "/analytics", icon: BarChart3 },
+  { title: "AI Analyst", href: "/ai", icon: Sparkles },
+  { title: "Settings", href: "/settings", icon: Settings },
 ];

@@ -20,26 +20,26 @@ export async function DashboardPage() {
   const analytics = computeAnalytics(allEvents);
 
   const metrics = [
-    { label: "MRR", value: formatCurrency(analytics.mrr), hint: "Месячный доход" },
-    { label: "ARR", value: formatCurrency(analytics.arr), hint: "Годовой доход" },
+    { label: "MRR", value: formatCurrency(analytics.mrr), hint: "Monthly recurring revenue" },
+    { label: "ARR", value: formatCurrency(analytics.arr), hint: "Annual recurring revenue" },
     {
-      label: "Активные пользователи",
+      label: "Active users",
       value: String(analytics.activeUsers),
-      hint: "За 30 дней",
+      hint: "Last 30 days",
     },
     {
-      label: "Отток (churn)",
+      label: "Churn",
       value: formatPercent(analytics.churnRate),
-      hint: "Среди подписчиков",
+      hint: "Among subscribers",
     },
   ];
 
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Обзор</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
         <p className="text-sm text-muted-foreground">
-          Симуляция метрик SaaS в реальном времени
+          Simulated real-time SaaS metrics
         </p>
       </div>
 
@@ -60,15 +60,15 @@ export async function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-xl border border-border bg-background p-5 shadow-sm lg:col-span-2">
-          <div className="text-sm font-medium">График дохода</div>
+          <div className="text-sm font-medium">Revenue chart</div>
           <div className="mt-4 flex h-56 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-            Появится на Day 4 — Аналитика (графики)
+            Coming on Day 4 — Analytics (charts)
           </div>
         </div>
 
         <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-sm font-medium">Живая лента событий</div>
+            <div className="text-sm font-medium">Live event feed</div>
             <SimulateButton />
           </div>
           <div className="mt-3">

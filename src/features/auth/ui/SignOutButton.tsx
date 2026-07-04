@@ -26,8 +26,8 @@ export function SignOutButton() {
       size="icon-sm"
       onClick={handleClick}
       disabled={loading}
-      aria-label="Выйти"
-      title="Выйти"
+      aria-label="Sign out"
+      title="Sign out"
     >
       {loading ? (
         <Loader2 className="size-4 animate-spin" />

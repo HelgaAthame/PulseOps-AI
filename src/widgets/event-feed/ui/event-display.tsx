@@ -18,27 +18,27 @@ type EventDisplay = {
 
 export const eventDisplay: Record<EventType, EventDisplay> = {
   user_signed_up: {
-    label: "Регистрация",
+    label: "Sign-up",
     icon: UserPlus,
     badge: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   },
   subscription_created: {
-    label: "Новая подписка",
+    label: "New subscription",
     icon: CreditCard,
     badge: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
   },
   payment_success: {
-    label: "Успешный платёж",
+    label: "Payment succeeded",
     icon: CircleDollarSign,
     badge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   },
   payment_failed: {
-    label: "Ошибка платежа",
+    label: "Payment failed",
     icon: XCircle,
     badge: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   },
   churn_detected: {
-    label: "Отток клиента",
+    label: "Customer churn",
     icon: UserMinus,
     badge: "bg-red-500/10 text-red-600 dark:text-red-400",
   },
@@ -56,7 +56,7 @@ export function summarizePayload(
       return typeof payload.source === "string" ? payload.source : null;
     case "subscription_created":
       return payload.plan && payload.mrr
-        ? `${payload.plan} · $${payload.mrr}/мес`
+        ? `${payload.plan} · $${payload.mrr}/mo`
         : null;
     case "payment_success":
       return payload.amount ? `$${payload.amount}` : null;

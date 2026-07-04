@@ -5,17 +5,15 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/shared/lib/utils";
 import { navItems } from "@/shared/config/nav";
+import { Logo } from "@/shared/ui/logo";
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-background md:flex">
-      <div className="flex h-14 items-center gap-2 px-5">
-        <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <span className="text-sm font-bold">P</span>
-        </div>
-        <span className="text-sm font-semibold tracking-tight">PulseOps</span>
+    <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
+      <div className="flex h-14 items-center px-5">
+        <Logo />
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-3 py-2">
@@ -43,7 +41,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
-        Учебный SaaS-проект
+        Educational SaaS project
       </div>
     </aside>
   );

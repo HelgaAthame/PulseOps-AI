@@ -51,7 +51,7 @@ export function PasskeySignInButton({
       ) : (
         <Fingerprint className="size-4" />
       )}
-      Войти по биометрии (passkey)
+      Sign in with passkey
     </Button>
   );
 }
