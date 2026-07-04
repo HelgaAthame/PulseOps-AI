@@ -19,8 +19,8 @@
 | Day 2 | БД + Auth (Drizzle, Supabase Auth, защита роутов) | ✅ |
 | Day 3 | Event-система (генератор + живая лента) | ✅ |
 | Auth+ | Авторизация: Passkeys ✅, Google ✅, hCaptcha ✅ (всё вживую) | ✅ |
-| Day 4 | Analytics-движок (MRR/churn, графики) | 🚧 движок ✅, графики ⬜ |
-| Day 5 | Realtime (Supabase subscriptions) | ⬜ |
+| Day 4 | Analytics-движок (MRR/churn, графики) | ✅ |
+| Day 5 | Realtime (Supabase subscriptions) | ✅ |
 | Day 6 | AI-аналитик («Explain this system») | ⬜ |
 | Day 7 | Полировка + деплой на Vercel | ⬜ |
 
@@ -253,20 +253,23 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 - 🚧 `/api/events/ingest` (owner из auth) + `/api/events/simulate` (мок-генератор)
 - 🚧 Event list UI (живая лента)
 
-## Day 4 — Analytics engine 🚧
+## Day 4 — Analytics engine ✅
 - ✅ Расчёт MRR / ARR / churn / conversion / active users / signups / revenue —
-  чистая функция `computeAnalytics(events)` в `entities/metric/model/analytics.ts`
-  (проверена детерминированным тестом + roundtrip на реальной БД)
-- ✅ `/api/analytics` (owner из auth → все события → снимок)
-- ✅ Реальные числа в карточках дашборда (MRR/ARR/active/churn)
-- ⬜ **Графики** — выбран **shadcn charts (на Recharts)** как когерентный к
-  shadcn/ui. Отложено до ревью пользователем (нужен визуальный контроль;
-  Playwright сейчас недоступен). Перед версткой — прочитать skill `dataviz`.
+  `computeAnalytics(events)` (сортирует по времени: MRR по последней подписке)
+- ✅ Временные ряды `computeDailySeries` (revenue/signups/MRR по дням) и
+  `computeEventTypeCounts` в `entities/metric/model/timeseries.ts`
+- ✅ `/api/analytics`, `/api/events/seed` (демо-история за 60 дней)
+- ✅ Генерация истории `generateHistory` (бэкдейтенные события с ростом)
+- ✅ Графики (shadcn chart на recharts, палитра из skill `dataviz`): MrrChart
+  (area, золото), SignupsChart (bar), EventMixChart (по типам). Страница
+  `/analytics` + MRR-график на дашборде + кнопка «Seed demo data»
 - 💡 На проде агрегаты считать в SQL (сейчас — в JS, ок для симуляции)
 
-## Day 5 — Real-time updates ⬜
-- ⬜ Supabase realtime subscriptions
-- ⬜ Live-лента и live-обновление графиков
+## Day 5 — Real-time updates ✅
+- ✅ Supabase Realtime: RLS + политика + публикация events (миграция 0001)
+- ✅ `features/realtime/LiveIndicator` — подписка postgres_changes INSERT по
+  owner_id, дебаунс-refresh (лента + графики live), индикатор Live в topbar
+- ✅ Проверено end-to-end (подписка → вставка → доставка с RLS-фильтром)
 
 ## Day 6 — AI Analyst ⬜
 - ⬜ `/api/ai/analyze` (события + метрики → инсайты)
@@ -275,8 +278,12 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 ## Day 7 — Polish + Portfolio ⬜
 - ✅ Фирменный стиль (чёрный+золото по логотипам), тёмная тема + переключатель,
   логотип (реальный знак), английский UI, фавикон — сделано раньше срока
-- ⬜ **Проверка адаптива** на узких экранах (первый проход сделан: бургер-меню,
-  topbar, убран горизонт./двойной скролл — но пройтись по всем страницам)
+- ⬜ **Визуальный QA адаптива на разных разрешениях** (mobile 375, tablet 768,
+  desktop 1280+) через Playwright MCP: пройтись по всем страницам в обеих
+  темах, снять скриншоты, поправить что криво. Первый проход по коду сделан
+  (бургер-меню через портал, topbar, убран горизонт./двойной скролл), но
+  нужен именно скриншот-ревью. **Блокер:** Playwright MCP-сервер сейчас
+  отвалился — нужно переподключить (или поставить playwright локально).
 - ⬜ Анимации, loading/empty states, spacing
 - ⬜ README на английском (для рекрутеров)
 - ⬜ Деплой на Vercel (+ интеграции Supabase↔GitHub/Vercel, см. бэклог)
