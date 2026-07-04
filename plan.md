@@ -21,7 +21,7 @@
 | Auth+ | Авторизация: Passkeys ✅, Google ✅, hCaptcha ✅ (всё вживую) | ✅ |
 | Day 4 | Analytics-движок (MRR/churn, графики) | ✅ |
 | Day 5 | Realtime (Supabase subscriptions) | ✅ |
-| Day 6 | AI-аналитик («Explain this system») | ⬜ |
+| Day 6 | AI-аналитик («Explain this system») | ✅ |
 | Day 7 | Полировка + деплой на Vercel | ⬜ |
 
 **Сделано в этой итерации:** Day 3 завершён; авторизация — весь код написан и
@@ -218,11 +218,27 @@ npm run db:migrate   # применить миграции к БД
 Производные метрики: MRR, ARR, churn rate, conversion rate, active users.
 Считаются на сервере (Route Handlers), пишутся снимками в `metrics`.
 
-## 3. AI Analyst Layer (WOW) — Day 6 ⬜
-Кнопка «Explain what is happening». AI получает последние ~100 событий +
-снимок аналитики, возвращает insights / аномалии / рекомендации.
-> Для AI использовать современную модель Claude (напр. Claude Sonnet) через
-> Anthropic API — уточнить при реализации.
+## 3. AI Analyst Layer (WOW) — Day 6 ✅
+Кнопка «Explain what's happening» в topbar. AI получает снимок аналитики +
+дневные ряды за 30 дней + разбивку по типам событий, возвращает
+структурированные insights / аномалии / рекомендации.
+
+**Реализация:**
+- Модель — `claude-opus-4-8` (Anthropic API, SDK `@anthropic-ai/sdk`),
+  адаптивное мышление + `effort: "medium"`.
+- **Structured outputs** (`output_config.format` = `json_schema`) по нашей
+  схеме → гарантированно валидный JSON. На своей стороне ещё валидируем zod'ом.
+- FSD-фича `features/ai-analyst/`: `model/insight.ts` (типы + zod + JSON-схема),
+  `api/generate-insights.ts` (server-only: строит компактный контекст из
+  событий и зовёт Claude), `ui/ExplainButton.tsx` (client: кнопка + модалка
+  через `createPortal` в body, как MobileNav; loading-скелетон, аномалии по
+  severity, рекомендации).
+- Роут `POST /api/ai/analyze`: auth → `listAllEvents` → `generateInsights`.
+  Коды: 401 (нет сессии), 422 (нет данных — предложи Seed), 503 (нет
+  `ANTHROPIC_API_KEY`), 502 (ошибка модели).
+- **Env:** `ANTHROPIC_API_KEY` (backend-only) добавлен в `.env.example` и
+  `.env.local` (плейсхолдер). ⚠️ Пользователю нужно вставить свой ключ, иначе
+  роут отвечает 503. Ключ: https://console.anthropic.com/settings/keys
 
 ## 4. Realtime System — Day 5 ⬜
 Supabase Realtime: live-лента событий, live-обновление графиков —
@@ -271,9 +287,15 @@ Drag & drop виджеты, ресайз графиков, сохранение 
   owner_id, дебаунс-refresh (лента + графики live), индикатор Live в topbar
 - ✅ Проверено end-to-end (подписка → вставка → доставка с RLS-фильтром)
 
-## Day 6 — AI Analyst ⬜
-- ⬜ `/api/ai/analyze` (события + метрики → инсайты)
-- ⬜ Кнопка «Explain this system»
+## Day 6 — AI Analyst ✅
+- ✅ `POST /api/ai/analyze` — auth → все события владельца → `generateInsights`
+  (`claude-opus-4-8`, адаптивное мышление, structured outputs по JSON-схеме)
+- ✅ Кнопка «Explain what's happening» в topbar → модалка с разбором
+  (headline / summary / highlights по тональности / anomalies по severity /
+  recommendations). FSD-фича `features/ai-analyst/`
+- ✅ Env-плейсхолдер `ANTHROPIC_API_KEY` (без ключа роут отвечает 503 с
+  понятным текстом). Детали — раздел «3. AI Analyst Layer» выше
+- 💡 На проде: рейт-лимит на роут + кэш ответа (сейчас каждый клик = новый вызов)
 
 ## Day 7 — Polish + Portfolio ⬜
 - ✅ Фирменный стиль (чёрный+золото по логотипам), тёмная тема + переключатель,

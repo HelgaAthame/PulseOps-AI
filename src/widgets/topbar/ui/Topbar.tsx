@@ -1,7 +1,7 @@
-import { Search, Sparkles } from "lucide-react";
+import { Search } from "lucide-react";
 
-import { Button } from "@/shared/ui/button";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
+import { ExplainButton } from "@/features/ai-analyst";
 import { SignOutButton } from "@/features/auth";
 import { LiveIndicator } from "@/features/realtime";
 import { MobileNav } from "@/widgets/sidebar";
@@ -22,10 +22,7 @@ export function Topbar({ userId }: { userId: string }) {
 
       <LiveIndicator userId={userId} />
 
-      <Button variant="outline" size="sm" className="shrink-0">
-        <Sparkles className="size-4" />
-        <span className="hidden sm:inline">Explain what&apos;s happening</span>
-      </Button>
+      <ExplainButton />
 
       <ThemeToggle />
       <SignOutButton />
