@@ -19,14 +19,16 @@
 | Day 2 | БД + Auth (Drizzle, Supabase Auth, защита роутов) | ✅ |
 | Day 3 | Event-система (генератор + живая лента) | ✅ |
 | Auth+ | Современная авторизация (Google, Passkeys, CAPTCHA) | 🚧 код готов, нужна настройка сервисов |
-| Day 4 | Analytics-движок (MRR/churn, графики) | ⬜ |
+| Day 4 | Analytics-движок (MRR/churn, графики) | 🚧 движок ✅, графики ⬜ |
 | Day 5 | Realtime (Supabase subscriptions) | ⬜ |
 | Day 6 | AI-аналитик («Explain this system») | ⬜ |
 | Day 7 | Полировка + деплой на Vercel | ⬜ |
 
 **Сделано в этой итерации:** Day 3 завершён; авторизация — весь код написан и
 собирается, осталось включить сервисы (Google Cloud, Cloudflare, настройки в
-Supabase Dashboard) — см. чеклист ниже.
+Supabase Dashboard) — см. чеклист ниже; Day 4 — analytics-движок готов и
+проверен, реальные метрики уже в карточках дашборда. Осталось нарисовать
+графики (отложено до визуального ревью).
 
 ---
 
@@ -241,10 +243,16 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 - 🚧 `/api/events/ingest` (owner из auth) + `/api/events/simulate` (мок-генератор)
 - 🚧 Event list UI (живая лента)
 
-## Day 4 — Analytics engine ⬜
-- ⬜ Расчёт MRR / churn / signups / conversion / active users
-- ⬜ `/api/analytics`
-- ⬜ Графики (библиотека TBD — Recharts/Tremor, выбрать на Day 4)
+## Day 4 — Analytics engine 🚧
+- ✅ Расчёт MRR / ARR / churn / conversion / active users / signups / revenue —
+  чистая функция `computeAnalytics(events)` в `entities/metric/model/analytics.ts`
+  (проверена детерминированным тестом + roundtrip на реальной БД)
+- ✅ `/api/analytics` (owner из auth → все события → снимок)
+- ✅ Реальные числа в карточках дашборда (MRR/ARR/active/churn)
+- ⬜ **Графики** — выбран **shadcn charts (на Recharts)** как когерентный к
+  shadcn/ui. Отложено до ревью пользователем (нужен визуальный контроль;
+  Playwright сейчас недоступен). Перед версткой — прочитать skill `dataviz`.
+- 💡 На проде агрегаты считать в SQL (сейчас — в JS, ок для симуляции)
 
 ## Day 5 — Real-time updates ⬜
 - ⬜ Supabase realtime subscriptions

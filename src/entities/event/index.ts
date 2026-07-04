@@ -6,5 +6,6 @@ export {
   insertEvent,
   insertEvents,
   listRecentEvents,
+  listAllEvents,
   type EventRow,
 } from "./model/event.repo";

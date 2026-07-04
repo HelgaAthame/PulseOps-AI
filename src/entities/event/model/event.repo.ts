@@ -34,3 +34,16 @@ export async function listRecentEvents(ownerId: string, limit = 20) {
     .orderBy(desc(events.createdAt))
     .limit(limit);
 }
+
+/**
+ * Все события владельца для расчёта аналитики. Лимит-предохранитель на 5000 —
+ * для учебной симуляции достаточно; на проде агрегаты считались бы в SQL.
+ */
+export async function listAllEvents(ownerId: string, limit = 5000) {
+  return db
+    .select()
+    .from(events)
+    .where(eq(events.ownerId, ownerId))
+    .orderBy(desc(events.createdAt))
+    .limit(limit);
+}

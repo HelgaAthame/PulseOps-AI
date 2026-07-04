@@ -4,3 +4,7 @@ export {
   metricQuerySchema,
   type MetricQueryInput,
 } from "./model/metric.schema";
+export {
+  computeAnalytics,
+  type AnalyticsSnapshot,
+} from "./model/analytics";

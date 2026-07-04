@@ -1,13 +1,8 @@
-import { listRecentEvents } from "@/entities/event";
+import { listAllEvents, listRecentEvents } from "@/entities/event";
+import { computeAnalytics } from "@/entities/metric";
 import { createClient } from "@/shared/api/supabase/server";
+import { formatCurrency, formatPercent } from "@/shared/lib/format";
 import { EventFeed, SimulateButton } from "@/widgets/event-feed";
-
-const metrics = [
-  { label: "MRR", value: "$0", hint: "Месячный доход" },
-  { label: "ARR", value: "$0", hint: "Годовой доход" },
-  { label: "Активные пользователи", value: "0", hint: "За 30 дней" },
-  { label: "Отток (churn)", value: "0%", hint: "За 30 дней" },
-];
 
 export async function DashboardPage() {
   const supabase = await createClient();
@@ -15,7 +10,29 @@ export async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const events = user ? await listRecentEvents(user.id, 8) : [];
+  const [recent, allEvents] = user
+    ? await Promise.all([
+        listRecentEvents(user.id, 8),
+        listAllEvents(user.id),
+      ])
+    : [[], []];
+
+  const analytics = computeAnalytics(allEvents);
+
+  const metrics = [
+    { label: "MRR", value: formatCurrency(analytics.mrr), hint: "Месячный доход" },
+    { label: "ARR", value: formatCurrency(analytics.arr), hint: "Годовой доход" },
+    {
+      label: "Активные пользователи",
+      value: String(analytics.activeUsers),
+      hint: "За 30 дней",
+    },
+    {
+      label: "Отток (churn)",
+      value: formatPercent(analytics.churnRate),
+      hint: "Среди подписчиков",
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -45,7 +62,7 @@ export async function DashboardPage() {
         <div className="rounded-xl border border-border bg-background p-5 shadow-sm lg:col-span-2">
           <div className="text-sm font-medium">График дохода</div>
           <div className="mt-4 flex h-56 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-            Появится на Day 4 — Аналитика
+            Появится на Day 4 — Аналитика (графики)
           </div>
         </div>
 
@@ -55,7 +72,7 @@ export async function DashboardPage() {
             <SimulateButton />
           </div>
           <div className="mt-3">
-            <EventFeed events={events} />
+            <EventFeed events={recent} />
           </div>
         </div>
       </div>

@@ -1,3 +1,19 @@
+const currencyFmt = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+/** Денежная сумма в USD без копеек: 1234 → «$1,234». */
+export function formatCurrency(value: number): string {
+  return currencyFmt.format(value);
+}
+
+/** Доля 0..1 в проценты: 0.123 → «12.3%». */
+export function formatPercent(value: number, digits = 1): string {
+  return `${(value * 100).toFixed(digits)}%`;
+}
+
 const rtf = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
 
 /** Относительное время на русском: «только что», «5 секунд назад», «2 часа назад». */
