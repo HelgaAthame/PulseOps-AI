@@ -130,7 +130,7 @@ src/
 |-------|-----|---------------------------------------------|
 | Email + пароль | ✅ работает | — (готово на Day 2) |
 | **Google OAuth** | ✅ написан | Завести OAuth-приложение в Google Cloud → вписать Client ID/Secret **в Supabase Dashboard** (не в наш .env). Добавить redirect URL. |
-| **Passkeys / биометрия** 🌟 | ✅ написан | В Supabase Dashboard → Authentication → Passkeys: включить, задать Relying Party ID (домен) и origins. |
+| **Passkeys / биометрия** 🌟 | ✅ работает (проверено вживую) | Включено в Dashboard (RP ID `localhost`, origin `http://localhost:3000`). Регистрация и вход по Windows Hello прошли end-to-end. На проде — добавить домен в RP origins. |
 | **Turnstile CAPTCHA** | ✅ написан | Завести бесплатный Cloudflare Turnstile → Site Key в `.env` (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`), Secret Key **в Supabase Dashboard** + включить Captcha protection. |
 | 2FA (TOTP) | 💡 бэклог | Избыточно при passkeys; отложено. |
 
@@ -141,7 +141,10 @@ src/
 - Страница входа `/login`: кнопки Google + passkey, разделитель, форма
   email/пароль с передачей `captchaToken` (когда Turnstile настроен).
 - `/auth/callback` — обмен OAuth-кода на сессию (PKCE).
-- `/settings` — карточка аккаунта + «Добавить passkey» (регистрация биометрии).
+- `/settings` — карточка аккаунта + **менеджер passkeys** (`PasskeyManager`):
+  список зарегистрированных (имя, когда добавлен/использован), добавление и
+  удаление через `supabase.auth.passkey.list()/registerPasskey()/passkey.delete()`.
+  Passkeys хранятся в beta-таблице `auth.webauthn_credentials` (не `mfa_factors`).
 - Кнопка выхода в topbar.
 - `TurnstileWidget` — no-op, пока не задан site key (вход не блокируется).
 

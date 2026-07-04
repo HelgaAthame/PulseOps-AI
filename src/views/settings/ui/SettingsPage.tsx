@@ -1,4 +1,4 @@
-import { RegisterPasskeyButton } from "@/features/auth";
+import { PasskeyManager } from "@/features/auth";
 import { createClient } from "@/shared/api/supabase/server";
 
 export async function SettingsPage() {
@@ -28,11 +28,11 @@ export async function SettingsPage() {
 
       <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
         <div className="text-sm font-medium">Passkey / биометрия</div>
-        <p className="mt-1 mb-3 text-sm text-muted-foreground">
-          Добавьте passkey, чтобы входить по Face ID, Touch ID или Windows Hello
-          — без пароля.
+        <p className="mt-1 mb-4 text-sm text-muted-foreground">
+          Входите по Face ID, Touch ID или Windows Hello — без пароля. Здесь
+          видны все ваши passkeys; лишние можно удалить.
         </p>
-        <RegisterPasskeyButton />
+        <PasskeyManager />
       </div>
     </div>
   );
