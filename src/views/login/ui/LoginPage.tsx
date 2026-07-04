@@ -99,7 +99,7 @@ export function LoginPage() {
 
         <div className="mt-5 flex flex-col gap-2">
           <GoogleButton onError={setError} />
-          <PasskeySignInButton onError={setError} />
+          <PasskeySignInButton onError={setError} captchaToken={captchaToken} />
         </div>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">

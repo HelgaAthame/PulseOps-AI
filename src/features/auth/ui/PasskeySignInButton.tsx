@@ -9,8 +9,10 @@ import { Button } from "@/shared/ui/button";
 
 export function PasskeySignInButton({
   onError,
+  captchaToken,
 }: {
   onError?: (message: string) => void;
+  captchaToken?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,9 @@ export function PasskeySignInButton({
     onError?.("");
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPasskey();
+      const { error } = await supabase.auth.signInWithPasskey(
+        captchaToken ? { options: { captchaToken } } : undefined
+      );
       if (error) {
         onError?.(error.message);
         return;

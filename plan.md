@@ -18,7 +18,7 @@
 | Day 1 | Каркас UI (Next.js, Tailwind, shadcn/ui, layout) | ✅ |
 | Day 2 | БД + Auth (Drizzle, Supabase Auth, защита роутов) | ✅ |
 | Day 3 | Event-система (генератор + живая лента) | ✅ |
-| Auth+ | Авторизация: Passkeys ✅, Google ✅ (вживую), hCaptcha ⬜ | 🚧 |
+| Auth+ | Авторизация: Passkeys ✅, Google ✅, hCaptcha ✅ (всё вживую) | ✅ |
 | Day 4 | Analytics-движок (MRR/churn, графики) | 🚧 движок ✅, графики ⬜ |
 | Day 5 | Realtime (Supabase subscriptions) | ⬜ |
 | Day 6 | AI-аналитик («Explain this system») | ⬜ |
@@ -131,15 +131,18 @@ src/
 | Email + пароль | ✅ работает | — (готово на Day 2) |
 | **Google OAuth** | ✅ работает (проверено вживую) | Настроено: OAuth client в Google Cloud (redirect на `<ref>.supabase.co/auth/v1/callback`), Client ID/Secret в Supabase, Redirect URLs `http://localhost:3000/**`. Вход через Google → callback → профиль в public.users подтверждён. |
 | **Passkeys / биометрия** 🌟 | ✅ работает (проверено вживую) | Включено в Dashboard (RP ID `localhost`, origin `http://localhost:3000`). Регистрация и вход по Windows Hello прошли end-to-end. На проде — добавить домен в RP origins. |
-| **hCaptcha CAPTCHA** | ✅ написан | Cloudflare заблокировал регистрацию (VPN/датацентр-IP), поэтому выбран **hCaptcha** (Supabase поддерживает и его). Site Key в `.env` (`NEXT_PUBLIC_HCAPTCHA_SITE_KEY`), Secret Key **в Supabase Dashboard** + включить Captcha protection (провайдер hCaptcha). |
+| **hCaptcha CAPTCHA** | ✅ работает (проверено вживую) | Cloudflare Turnstile отпал (заблокировал регистрацию с VPN/датацентр-IP) → выбран **hCaptcha**. Site Key в `.env` (`NEXT_PUBLIC_HCAPTCHA_SITE_KEY`), account-level Secret Key **в Supabase** (Attack Protection → Captcha → hCaptcha). Вход с капчей проверен. |
 | 2FA (TOTP) | 💡 бэклог | Избыточно при passkeys; отложено. |
 
 ### ✅ Что уже сделано в коде (Auth)
 - Браузерный Supabase-клиент включает passkeys (`auth.experimental.passkey`).
-- `features/auth/`: `GoogleButton`, `PasskeySignInButton`, `RegisterPasskeyButton`,
+- `features/auth/`: `GoogleButton`, `PasskeySignInButton`, `PasskeyManager`,
   `CaptchaWidget` (hCaptcha), `SignOutButton`.
 - Страница входа `/login`: кнопки Google + passkey, разделитель, форма
   email/пароль с передачей `captchaToken` (когда hCaptcha настроен).
+  ⚠️ Капча в Supabase **глобальная** (на весь проект), поэтому токен передаётся
+  и во вход по **passkey** (`signInWithPasskey({ options: { captchaToken } })`),
+  иначе passkey-вход ломается при включённой капче.
 - `/auth/callback` — обмен OAuth-кода на сессию (PKCE).
 - `/settings` — карточка аккаунта + **менеджер passkeys** (`PasskeyManager`):
   список зарегистрированных (имя, когда добавлен/использован), добавление и
