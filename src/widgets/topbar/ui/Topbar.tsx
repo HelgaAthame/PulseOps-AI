@@ -1,6 +1,7 @@
 import { Search, Sparkles } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
+import { SignOutButton } from "@/features/auth";
 
 export function Topbar() {
   return (
@@ -14,6 +15,8 @@ export function Topbar() {
         <Sparkles className="size-4" />
         Объяснить, что происходит
       </Button>
+
+      <SignOutButton />
     </header>
   );
 }

@@ -17,15 +17,16 @@
 |------|------|--------|
 | Day 1 | Каркас UI (Next.js, Tailwind, shadcn/ui, layout) | ✅ |
 | Day 2 | БД + Auth (Drizzle, Supabase Auth, защита роутов) | ✅ |
-| Day 3 | Event-система (генератор + живая лента) | 🚧 |
-| Auth+ | Современная авторизация (Google, Passkeys, CAPTCHA) | 🚧 |
+| Day 3 | Event-система (генератор + живая лента) | ✅ |
+| Auth+ | Современная авторизация (Google, Passkeys, CAPTCHA) | 🚧 код готов, нужна настройка сервисов |
 | Day 4 | Analytics-движок (MRR/churn, графики) | ⬜ |
 | Day 5 | Realtime (Supabase subscriptions) | ⬜ |
 | Day 6 | AI-аналитик («Explain this system») | ⬜ |
 | Day 7 | Полировка + деплой на Vercel | ⬜ |
 
-**Сейчас в работе:** Day 3 (события) и параллельно scaffolding современной
-авторизации.
+**Сделано в этой итерации:** Day 3 завершён; авторизация — весь код написан и
+собирается, осталось включить сервисы (Google Cloud, Cloudflare, настройки в
+Supabase Dashboard) — см. чеклист ниже.
 
 ---
 
@@ -74,8 +75,9 @@ src/
 │   ├── dashboard/            # экран "Обзор"
 │   └── login/                # экран входа
 ├── widgets/                  # композитные блоки UI
-│   ├── sidebar/
-│   └── topbar/
+│   ├── sidebar/  topbar/  event-feed/
+├── features/                 # пользовательские действия
+│   └── auth/                 # Google/passkey/Turnstile/sign-out кнопки
 ├── entities/                 # бизнес-сущности (таблицы + zod + хелперы)
 │   ├── user/  event/  metric/
 ├── shared/                   # переиспользуемое
@@ -122,13 +124,40 @@ src/
 
 Всё на **Supabase Auth**, бесплатно, без второй auth-библиотеки.
 
-| Метод | Статус | Что нужно от пользователя |
-|-------|--------|---------------------------|
-| Email + пароль | ✅ | — (готово на Day 2) |
-| **Google OAuth** | 🚧 | Завести OAuth-приложение в Google Cloud → вписать Client ID/Secret **в Supabase Dashboard** (не в наш .env). Добавить redirect URL. |
-| **Passkeys / биометрия** 🌟 | 🚧 | В Supabase Dashboard → Authentication → Passkeys: включить, задать Relying Party ID (домен) и origins. |
-| **Turnstile CAPTCHA** | 🚧 | Завести бесплатный Cloudflare Turnstile → Site Key в наш `.env` (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`), Secret Key **в Supabase Dashboard**. |
+| Метод | Код | Что нужно от пользователя, чтобы заработало |
+|-------|-----|---------------------------------------------|
+| Email + пароль | ✅ работает | — (готово на Day 2) |
+| **Google OAuth** | ✅ написан | Завести OAuth-приложение в Google Cloud → вписать Client ID/Secret **в Supabase Dashboard** (не в наш .env). Добавить redirect URL. |
+| **Passkeys / биометрия** 🌟 | ✅ написан | В Supabase Dashboard → Authentication → Passkeys: включить, задать Relying Party ID (домен) и origins. |
+| **Turnstile CAPTCHA** | ✅ написан | Завести бесплатный Cloudflare Turnstile → Site Key в `.env` (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`), Secret Key **в Supabase Dashboard** + включить Captcha protection. |
 | 2FA (TOTP) | 💡 бэклог | Избыточно при passkeys; отложено. |
+
+### ✅ Что уже сделано в коде (Auth)
+- Браузерный Supabase-клиент включает passkeys (`auth.experimental.passkey`).
+- `features/auth/`: `GoogleButton`, `PasskeySignInButton`, `RegisterPasskeyButton`,
+  `TurnstileWidget`, `SignOutButton`.
+- Страница входа `/login`: кнопки Google + passkey, разделитель, форма
+  email/пароль с передачей `captchaToken` (когда Turnstile настроен).
+- `/auth/callback` — обмен OAuth-кода на сессию (PKCE).
+- `/settings` — карточка аккаунта + «Добавить passkey» (регистрация биометрии).
+- Кнопка выхода в topbar.
+- `TurnstileWidget` — no-op, пока не задан site key (вход не блокируется).
+
+### 🔧 Чеклист настройки для пользователя (пошагово)
+1. **Google OAuth:** Google Cloud Console → APIs & Services → Credentials →
+   создать OAuth client (Web). Authorized redirect URI:
+   `https://<project-ref>.supabase.co/auth/v1/callback`. Client ID/Secret →
+   Supabase Dashboard → Authentication → Providers → Google → включить, вставить.
+2. **Passkeys:** Supabase Dashboard → Authentication → Passkeys → включить.
+   RP Display Name: `PulseOps`. RP ID: `localhost` (для dev) или домен прода.
+   RP Origins: `http://localhost:3000` (dev) и/или прод-URL.
+3. **Turnstile:** Cloudflare → Turnstile → создать виджет (домен `localhost` для
+   dev). Site Key → `.env.local` (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`). Secret Key →
+   Supabase Dashboard → Authentication → Attack Protection → Captcha → включить,
+   выбрать Turnstile, вставить secret.
+
+> Всё это можно включать по отдельности и в любой момент — код уже готов
+> «повернуть выключатель». Без настройки работает вход по email/паролю.
 
 **Заметки по реализации:**
 - **Passkeys** = вход по Face ID / Touch ID / Windows Hello. Нативная поддержка

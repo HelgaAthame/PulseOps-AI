@@ -7,6 +7,11 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { createClient } from "@/shared/api/supabase/client";
+import {
+  GoogleButton,
+  PasskeySignInButton,
+  TurnstileWidget,
+} from "@/features/auth";
 
 type Mode = "sign-in" | "sign-up";
 
@@ -18,6 +23,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | undefined>();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,11 +32,15 @@ export function LoginPage() {
     setLoading(true);
 
     const supabase = createClient();
+    // captchaToken передаётся только когда Turnstile настроен; иначе undefined
+    // (Supabase проверяет капчу, только если она включена в проекте).
+    const options = captchaToken ? { captchaToken } : undefined;
 
     if (mode === "sign-in") {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options,
       });
       setLoading(false);
 
@@ -44,7 +54,11 @@ export function LoginPage() {
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options,
+    });
     setLoading(false);
 
     if (error) {
@@ -83,7 +97,18 @@ export function LoginPage() {
             : "Создайте аккаунт, чтобы начать"}
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4">
+        <div className="mt-5 flex flex-col gap-2">
+          <GoogleButton onError={setError} />
+          <PasskeySignInButton onError={setError} />
+        </div>
+
+        <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          или по email
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -110,6 +135,8 @@ export function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+
+          <TurnstileWidget onToken={setCaptchaToken} />
 
           {notice && <p className="text-sm text-muted-foreground">{notice}</p>}
           {error && <p className="text-sm text-destructive">{error}</p>}
