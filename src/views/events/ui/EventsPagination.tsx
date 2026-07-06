@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { buttonVariants } from "@/shared/ui/button";
 
+import { PageJump } from "./PageJump";
 import { PageSizeSelect } from "./PageSizeSelect";
 
 export const PAGE_SIZES = [10, 15, 20, 25] as const;
@@ -65,10 +66,7 @@ export function EventsPagination({
           </span>
         )}
 
-        <span className="text-xs text-muted-foreground">
-          Page <span className="font-medium text-foreground">{page}</span> of{" "}
-          {totalPages}
-        </span>
+        <PageJump page={page} totalPages={totalPages} size={size} q={q} />
 
         {page < totalPages ? (
           <Link href={href(page + 1, size, q)} className={linkCls}>

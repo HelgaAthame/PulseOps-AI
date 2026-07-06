@@ -4,7 +4,7 @@ import { EventFeed, SimulateButton } from "@/widgets/event-feed";
 
 import { EventsPagination, PAGE_SIZES } from "./EventsPagination";
 
-const DEFAULT_SIZE = 25;
+const DEFAULT_SIZE = 10;
 
 export async function EventsPage({
   page: rawPage,
