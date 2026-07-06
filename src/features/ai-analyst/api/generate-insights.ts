@@ -17,11 +17,27 @@ export class AiNotConfiguredError extends Error {
   }
 }
 
+// Все модели упёрлись в лимит бесплатного тарифа OpenRouter → роут отдаёт 429.
+export class AiRateLimitedError extends Error {
+  constructor() {
+    super("Free AI tier is rate-limited");
+    this.name = "AiRateLimitedError";
+  }
+}
+
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-// Авто-роутер бесплатных моделей: сам выбирает доступную бесплатную модель
-// с нужными возможностями. Устойчив к тому, что конкретные модели приходят
-// и уходят. Переопределяется через OPENROUTER_MODEL (напр. конкретный `*:free`).
-const DEFAULT_MODEL = "openrouter/free";
+// Перебираем конкретные бесплатные модели ОТДЕЛЬНЫМИ запросами по очереди.
+// Почему не `openrouter/free` и не `models`-массив в одном запросе: бесплатные
+// эндпоинты иногда ЗАВИСАЮТ (rate-limit → запрос висит), а серверный фолбэк
+// OpenRouter срабатывает только на явных ошибках, не на зависании. Поэтому даём
+// каждой модели свой таймаут и при неудаче идём в СЛЕДУЮЩУЮ (другой эндпоинт),
+// а не долбим ту же зависшую. Порядок: быстрая 9B → альтернатива → надёжный
+// (но медленный) запас. Переопределяется одной моделью через OPENROUTER_MODEL.
+const DEFAULT_MODELS = [
+  "nvidia/nemotron-nano-9b-v2:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+];
+const ATTEMPT_TIMEOUT_MS = 30_000;
 
 const round = (n: number) => Math.round(n);
 const pct = (n: number) => Math.round(n * 1000) / 10; // доля 0..1 → проценты, 1 знак
@@ -94,14 +110,12 @@ function extractJson(raw: string): unknown {
  * ответ zod'ом — не полагаемся на строгий structured-outputs, который не все
  * бесплатные модели поддерживают.
  */
-export async function generateInsights(events: EventRow[]): Promise<Insights> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    throw new AiNotConfiguredError();
-  }
-
-  const context = buildContext(events);
-
+/** Одна попытка на КОНКРЕТНОЙ модели: запрос → извлечение JSON → валидация zod. */
+async function callModel(
+  apiKey: string,
+  model: string,
+  context: unknown
+): Promise<Insights> {
   const res = await fetch(OPENROUTER_URL, {
     method: "POST",
     headers: {
@@ -114,7 +128,7 @@ export async function generateInsights(events: EventRow[]): Promise<Insights> {
         : {}),
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL ?? DEFAULT_MODEL,
+      model,
       temperature: 0.4,
       max_tokens: 2000,
       response_format: { type: "json_object" },
@@ -123,10 +137,12 @@ export async function generateInsights(events: EventRow[]): Promise<Insights> {
         { role: "user", content: JSON.stringify(context) },
       ],
     }),
-    // Бесплатные модели бывают медленными — даём запас, но не вешаемся навсегда.
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
   });
 
+  if (res.status === 429) {
+    throw new AiRateLimitedError();
+  }
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
     throw new Error(`OpenRouter ${res.status}: ${detail.slice(0, 300)}`);
@@ -141,4 +157,32 @@ export async function generateInsights(events: EventRow[]): Promise<Insights> {
   }
 
   return insightsSchema.parse(extractJson(content));
+}
+
+export async function generateInsights(events: EventRow[]): Promise<Insights> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new AiNotConfiguredError();
+  }
+
+  const context = buildContext(events);
+  const models = process.env.OPENROUTER_MODEL
+    ? [process.env.OPENROUTER_MODEL]
+    : DEFAULT_MODELS;
+
+  // Перебираем модели по очереди: зависшую/сбойную пропускаем и идём в следующую.
+  let lastErr: unknown;
+  let anyRateLimited = false;
+  for (const model of models) {
+    try {
+      return await callModel(apiKey, model, context);
+    } catch (err) {
+      lastErr = err;
+      if (err instanceof AiRateLimitedError) anyRateLimited = true;
+      console.warn(`AI insights: model ${model} failed:`, (err as Error).message);
+    }
+  }
+  // Если хоть одна модель словила лимит — это, скорее всего, причина: отдаём 429.
+  if (anyRateLimited) throw new AiRateLimitedError();
+  throw lastErr ?? new Error("AI insights: all models failed");
 }

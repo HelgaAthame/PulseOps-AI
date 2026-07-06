@@ -3,8 +3,8 @@ import { EventsPage } from "@/views/events";
 export default async function Events({
   searchParams,
 }: Readonly<{
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; size?: string; q?: string }>;
 }>) {
-  const { page } = await searchParams;
-  return <EventsPage page={page} />;
+  const { page, size, q } = await searchParams;
+  return <EventsPage page={page} size={size} q={q} />;
 }

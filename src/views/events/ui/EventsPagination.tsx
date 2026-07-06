@@ -1,21 +1,38 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
+
+import { PageSizeSelect } from "./PageSizeSelect";
+
+export const PAGE_SIZES = [10, 15, 20, 25] as const;
 
 type EventsPaginationProps = {
   page: number;
   totalPages: number;
+  size: number;
+  q?: string;
   from: number;
   to: number;
   total: number;
 };
 
-/** Серверная пагинация ленты событий: страница живёт в `?page=`. */
+/** Строит /events?… с сохранением size и q. */
+function href(page: number, size: number, q?: string): string {
+  const sp = new URLSearchParams();
+  if (page > 1) sp.set("page", String(page));
+  sp.set("size", String(size));
+  if (q) sp.set("q", q);
+  const qs = sp.toString();
+  return qs ? `/events?${qs}` : "/events";
+}
+
+/** Серверная пагинация ленты событий: page/size/q живут в URL. */
 export function EventsPagination({
   page,
   totalPages,
+  size,
+  q,
   from,
   to,
   total,
@@ -26,15 +43,18 @@ export function EventsPagination({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-xs text-muted-foreground">
-        Showing <span className="font-medium text-foreground">{from}</span>–
-        <span className="font-medium text-foreground">{to}</span> of{" "}
-        <span className="font-medium text-foreground">{total}</span>
-      </p>
+      <div className="flex items-center gap-3">
+        <p className="text-xs text-muted-foreground">
+          Showing <span className="font-medium text-foreground">{from}</span>–
+          <span className="font-medium text-foreground">{to}</span> of{" "}
+          <span className="font-medium text-foreground">{total}</span>
+        </p>
+        <PageSizeSelect size={size} q={q} />
+      </div>
 
       <div className="flex items-center gap-2">
         {page > 1 ? (
-          <Link href={`/events?page=${page - 1}`} className={linkCls}>
+          <Link href={href(page - 1, size, q)} className={linkCls}>
             <ChevronLeft />
             Prev
           </Link>
@@ -51,12 +71,12 @@ export function EventsPagination({
         </span>
 
         {page < totalPages ? (
-          <Link href={`/events?page=${page + 1}`} className={linkCls}>
+          <Link href={href(page + 1, size, q)} className={linkCls}>
             Next
             <ChevronRight />
           </Link>
         ) : (
-          <span className={cn(disabledCls)} aria-disabled>
+          <span className={disabledCls} aria-disabled>
             Next
             <ChevronRight />
           </span>

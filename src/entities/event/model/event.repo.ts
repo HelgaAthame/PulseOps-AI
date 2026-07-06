@@ -1,4 +1,4 @@
-import { count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/shared/api/db";
 
@@ -6,6 +6,21 @@ import { events } from "./event.table";
 import { type EventIngestInput } from "./event.schema";
 
 export type EventRow = typeof events.$inferSelect;
+
+/** WHERE для событий владельца с опциональным поиском по типу/клиенту. */
+function ownerWhere(ownerId: string, q?: string): SQL | undefined {
+  const base = eq(events.ownerId, ownerId);
+  const term = q?.trim();
+  if (!term) return base;
+  const like = `%${term}%`;
+  return and(
+    base,
+    or(
+      ilike(sql`${events.type}::text`, like),
+      ilike(sql`${events.customerId}::text`, like)
+    )
+  );
+}
 
 type SeedRow = {
   type: EventRow["type"];
@@ -51,24 +66,27 @@ export async function listRecentEvents(ownerId: string, limit = 20) {
     .limit(limit);
 }
 
-/** Всего событий владельца — для пагинации (кол-во страниц). */
-export async function countOwnerEvents(ownerId: string): Promise<number> {
+/** Всего событий владельца (с учётом поиска) — для пагинации. */
+export async function countOwnerEvents(
+  ownerId: string,
+  q?: string
+): Promise<number> {
   const [row] = await db
     .select({ value: count() })
     .from(events)
-    .where(eq(events.ownerId, ownerId));
+    .where(ownerWhere(ownerId, q));
   return row?.value ?? 0;
 }
 
-/** Страница событий владельца (свежие сверху) — серверная пагинация. */
+/** Страница событий владельца (свежие сверху, с учётом поиска). */
 export async function listEventsPage(
   ownerId: string,
-  { limit, offset }: { limit: number; offset: number }
+  { limit, offset, q }: { limit: number; offset: number; q?: string }
 ) {
   return db
     .select()
     .from(events)
-    .where(eq(events.ownerId, ownerId))
+    .where(ownerWhere(ownerId, q))
     .orderBy(desc(events.createdAt))
     .limit(limit)
     .offset(offset);

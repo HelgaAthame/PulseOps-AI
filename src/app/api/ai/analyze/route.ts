@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { listAllEvents } from "@/entities/event";
 import {
   AiNotConfiguredError,
+  AiRateLimitedError,
   generateInsights,
 } from "@/features/ai-analyst/api/generate-insights";
 import { createClient } from "@/shared/api/supabase/server";
@@ -33,6 +34,15 @@ export async function POST() {
       return NextResponse.json(
         { error: "AI analyst is not configured. Set OPENROUTER_API_KEY on the server." },
         { status: 503 }
+      );
+    }
+    if (err instanceof AiRateLimitedError) {
+      return NextResponse.json(
+        {
+          error:
+            "The free AI tier is rate-limited right now. Wait a minute and try again (free models have per-minute and daily caps).",
+        },
+        { status: 429 }
       );
     }
     console.error("AI analyze failed:", err);
