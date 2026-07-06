@@ -224,13 +224,12 @@ npm run db:migrate   # применить миграции к БД
 структурированные insights / аномалии / рекомендации.
 
 **Реализация:**
-- **Провайдер — OpenRouter** (OpenAI-совместимый API, обычный `fetch`, без
-  SDK-зависимости). Изначально брали Anthropic/Claude, но он платный — для
-  учебного проекта заменили на **бесплатные модели OpenRouter** (суффикс
-  `:free`, стоят $0). Модель по умолчанию `openrouter/free` — авто-роутер,
-  сам выбирает доступную бесплатную модель с нужными фичами (устойчив к тому,
-  что конкретные модели приходят/уходят: та же «owl-alpha» уже стала платной).
-  Переопределяется через `OPENROUTER_MODEL`.
+- **Провайдер — Groq** (OpenAI-совместимый API, обычный `fetch`, без SDK).
+  История: Anthropic/Claude (платно) → OpenRouter free (упёрлись в ~50
+  запросов/день) → **Groq** (бесплатный тариф: 30 запросов/мин, 1000-14400/день,
+  без карты, очень быстрый инференс). Модели `llama-3.3-70b-versatile` (осн.) →
+  `llama-3.1-8b-instant` (фолбэк); перебор отдельными запросами с таймаутом,
+  при 429 — быстрый выход (не добивать квоту). Переопределяется `GROQ_MODEL`.
 - **JSON-контракт без строгого structured-outputs:** схему держим в промпте,
   просим «только JSON», ответ парсим защитно (`extractJson` срезает ```-заборы
   и берёт от первой `{` до последней `}`) и валидируем zod'ом. Так надёжнее на
@@ -238,18 +237,17 @@ npm run db:migrate   # применить миграции к БД
   `response_format: {type:"json_object"}` (мягкий режим) и timeout 60с.
 - FSD-фича `features/ai-analyst/`: `model/insight.ts` (типы + zod + JSON-схема
   для промпта), `api/generate-insights.ts` (server-only: строит компактный
-  контекст из событий и зовёт OpenRouter), `ui/ExplainButton.tsx` (client:
-  кнопка + модалка через `createPortal` в body, как MobileNav; loading-скелетон,
-  аномалии по severity, рекомендации).
+  контекст из событий и зовёт Groq), `ui/insights-view.tsx` + `use-insights.ts`
+  (переиспользуемые презентация и хук), страница `views/ai` (ручная генерация).
+  Кнопка в topbar — ссылка на `/ai` (пункт «AI Analyst» в сайдбаре тоже туда).
 - Роут `POST /api/ai/analyze`: auth → `listAllEvents` → `generateInsights`.
   Коды: 401 (нет сессии), 422 (нет данных — предложи Seed), 503 (нет
-  `OPENROUTER_API_KEY`), 502 (ошибка модели).
-- **Env:** `OPENROUTER_API_KEY` (+ опц. `OPENROUTER_MODEL`), backend-only.
-  Ключ бесплатный: https://openrouter.ai/keys. ⚠️ Бесплатные модели логируют
-  промпты/ответы у провайдера — у нас данные синтетические (демо-SaaS), ок.
-  Лимиты free-tier (порядка десятков запросов/день) для демо достаточно.
-- ✅ **Проверено вживую:** `openrouter/free` → `nvidia/nemotron-3-super-120b:free`,
-  HTTP 200 ~11с, валидный JSON, zod-валидация прошла, разбор осмысленный.
+  `GROQ_API_KEY`), 429 (лимит бесплатного тарифа), 502 (ошибка модели).
+- **Env:** `GROQ_API_KEY` (+ опц. `GROQ_MODEL`), backend-only. Ключ бесплатный,
+  без карты: https://console.groq.com/keys. ⚠️ Бесплатные модели могут логировать
+  промпты у провайдера — у нас данные синтетические (демо-SaaS), ок.
+- ✅ **Проверено вживую:** Groq `llama-3.3-70b-versatile`, HTTP 200 **~2.2с**,
+  валидный JSON нужной формы, разбор осмысленный.
 
 ## 4. Realtime System — Day 5 ⬜
 Supabase Realtime: live-лента событий, live-обновление графиков —
@@ -300,13 +298,13 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 
 ## Day 6 — AI Analyst ✅
 - ✅ `POST /api/ai/analyze` — auth → все события владельца → `generateInsights`
-  (**OpenRouter, бесплатная модель** `openrouter/free`; JSON-контракт через
-  промпт + защитный парсинг + zod, `response_format: json_object`)
-- ✅ Кнопка «Explain what's happening» в topbar → модалка с разбором
-  (headline / summary / highlights по тональности / anomalies по severity /
-  recommendations). FSD-фича `features/ai-analyst/`
-- ✅ Env `OPENROUTER_API_KEY` (+ опц. `OPENROUTER_MODEL`); без ключа роут → 503.
-  Проверено вживую (nemotron-3-super-120b:free). Детали — раздел «3» выше
+  (**Groq**, `llama-3.3-70b-versatile` → `llama-3.1-8b-instant`; JSON-контракт
+  через промпт + защитный парсинг + zod, `response_format: json_object`)
+- ✅ Страница `/ai` (AI Analyst) с ручной генерацией; кнопка в topbar и пункт
+  сайдбара ведут туда. Разбор: headline / summary / highlights по тональности /
+  anomalies по severity / recommendations. FSD-фича `features/ai-analyst/`
+- ✅ Env `GROQ_API_KEY` (+ опц. `GROQ_MODEL`); без ключа → 503, при лимите → 429.
+  Проверено вживую (Groq llama-3.3-70b, ~2.2с). Детали — раздел «3» выше
 - 💡 На проде: рейт-лимит на роут + кэш ответа (сейчас каждый клик = новый вызов)
 
 ## Day 7 — Polish + Portfolio ⬜
