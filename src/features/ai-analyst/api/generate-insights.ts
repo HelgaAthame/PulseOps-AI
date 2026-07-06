@@ -7,6 +7,7 @@ import {
   computeEventTypeCounts,
 } from "@/entities/metric";
 
+import { extractJson } from "../model/extract-json";
 import { INSIGHTS_JSON_SCHEMA, insightsSchema, type Insights } from "../model/insight";
 
 // Ошибка «фича не настроена» — роут превратит её в 503 с понятным текстом.
@@ -86,18 +87,6 @@ Explain what is happening in this business in plain, confident English, as a sha
 
 Respond with ONLY a single valid JSON object. No markdown, no code fences, no text before or after. It must match exactly this JSON schema:
 ${JSON.stringify(INSIGHTS_JSON_SCHEMA)}`;
-
-/**
- * Достаёт JSON-объект из ответа модели: бесплатные модели иногда оборачивают
- * его в ```json-заборы или добавляют пролог. Берём срез от первой { до последней }.
- */
-function extractJson(raw: string): unknown {
-  const fenced = raw.replace(/```(?:json)?/gi, "").trim();
-  const start = fenced.indexOf("{");
-  const end = fenced.lastIndexOf("}");
-  const slice = start >= 0 && end > start ? fenced.slice(start, end + 1) : fenced;
-  return JSON.parse(slice);
-}
 
 /**
  * Одна попытка на КОНКРЕТНОЙ модели через Groq (OpenAI-совместимый chat API):

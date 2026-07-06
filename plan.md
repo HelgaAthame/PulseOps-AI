@@ -310,12 +310,16 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 ## Day 7 — Polish + Portfolio ⬜
 - ✅ Фирменный стиль (чёрный+золото по логотипам), тёмная тема + переключатель,
   логотип (реальный знак), английский UI, фавикон — сделано раньше срока
-- ⬜ **Визуальный QA адаптива на разных разрешениях** (mobile 375, tablet 768,
-  desktop 1280+) через Playwright MCP: пройтись по всем страницам в обеих
-  темах, снять скриншоты, поправить что криво. Первый проход по коду сделан
-  (бургер-меню через портал, topbar, убран горизонт./двойной скролл), но
-  нужен именно скриншот-ревью. **Блокер:** Playwright MCP-сервер сейчас
-  отвалился — нужно переподключить (или поставить playwright локально).
+- ✅ **Визуальный QA адаптива** (mobile 375, desktop 1280/1920) через Playwright
+  MCP в обеих темах: Overview / Events / /ai. Багов вёрстки не найдено;
+  бургер-меню (портал), topbar, отсутствие горизонт./двойного скролла — ок.
+  Замер: приложение заполняет окно на 100% (пустота вокруг = размер окна
+  Playwright, не баг)
+- ✅ **Тесты (Vitest)** — доменный слой покрыт на 100% (statements/branches/
+  functions/lines): `computeAnalytics`, `computeDailySeries`/
+  `computeEventTypeCounts`, `generateEvents`/`generateHistory`, форматтеры,
+  `insightsSchema` + `extractJson`. 39 тестов. `npm run test` / `test:coverage`.
+  Фреймворк-glue (RSC/роуты/Supabase/drizzle) сознательно вне coverage
 - ⬜ Анимации, loading/empty states, spacing
 - ✅ **Пагинация на `/events`** — серверная, `?page=N` (25 на страницу):
   `countOwnerEvents` + `listEventsPage(limit/offset)` в репозитории,
@@ -358,7 +362,7 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 - **Dashboard builder** — drag & drop виджеты (WOW+).
 - **Supabase↔GitHub/Vercel интеграции** — авто-деплой и синк env (на Day 7).
 - **RLS-политики** в Postgres — защита данных на уровне БД (не только в коде).
-- **Тесты** — Vitest (unit для аналитики) + Playwright (e2e).
+- **Тесты** — ✅ Vitest (unit доменного слоя, 100%); ⬜ Playwright (e2e).
 - **Отдельная таблица `customers`** — полноценная симуляция end-users вместо
   синтетических `customer_id`.
 
