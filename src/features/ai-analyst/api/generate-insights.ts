@@ -12,12 +12,12 @@ import { INSIGHTS_JSON_SCHEMA, insightsSchema, type Insights } from "../model/in
 // Ошибка «фича не настроена» — роут превратит её в 503 с понятным текстом.
 export class AiNotConfiguredError extends Error {
   constructor() {
-    super("OPENROUTER_API_KEY is not set");
+    super("GROQ_API_KEY is not set");
     this.name = "AiNotConfiguredError";
   }
 }
 
-// Все модели упёрлись в лимит бесплатного тарифа OpenRouter → роут отдаёт 429.
+// Модель упёрлась в лимит бесплатного тарифа Groq → роут отдаёт 429.
 export class AiRateLimitedError extends Error {
   constructor() {
     super("Free AI tier is rate-limited");
@@ -25,18 +25,13 @@ export class AiRateLimitedError extends Error {
   }
 }
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-// Перебираем конкретные бесплатные модели ОТДЕЛЬНЫМИ запросами по очереди.
-// Почему не `openrouter/free` и не `models`-массив в одном запросе: бесплатные
-// эндпоинты иногда ЗАВИСАЮТ (rate-limit → запрос висит), а серверный фолбэк
-// OpenRouter срабатывает только на явных ошибках, не на зависании. Поэтому даём
-// каждой модели свой таймаут и при неудаче идём в СЛЕДУЮЩУЮ (другой эндпоинт),
-// а не долбим ту же зависшую. Порядок: быстрая 9B → альтернатива → надёжный
-// (но медленный) запас. Переопределяется одной моделью через OPENROUTER_MODEL.
-const DEFAULT_MODELS = [
-  "nvidia/nemotron-nano-9b-v2:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-];
+// Провайдер — Groq (OpenAI-совместимый API): бесплатный тариф со щедрыми
+// лимитами (30 запросов/мин, 1000-14400/день), очень быстрый инференс.
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+// Перебираем модели ОТДЕЛЬНЫМИ запросами по очереди: если основная сбоит/висит,
+// даём ей свой таймаут и идём в следующую. Порядок: сильная 70B → быстрая 8B
+// (у неё лимит запросов в день ещё выше). Переопределяется через GROQ_MODEL.
+const DEFAULT_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
 const ATTEMPT_TIMEOUT_MS = 30_000;
 
 const round = (n: number) => Math.round(n);
@@ -105,27 +100,20 @@ function extractJson(raw: string): unknown {
 }
 
 /**
- * Отправляет срез метрик в бесплатную модель через OpenRouter (OpenAI-совместимый
- * API) и возвращает структурированные инсайты. Схему держим в промпте и валидируем
- * ответ zod'ом — не полагаемся на строгий structured-outputs, который не все
- * бесплатные модели поддерживают.
+ * Одна попытка на КОНКРЕТНОЙ модели через Groq (OpenAI-совместимый chat API):
+ * запрос → извлечение JSON → валидация zod. Схему держим в промпте (+ мягкий
+ * response_format json_object) и валидируем ответ zod'ом на своей стороне.
  */
-/** Одна попытка на КОНКРЕТНОЙ модели: запрос → извлечение JSON → валидация zod. */
 async function callModel(
   apiKey: string,
   model: string,
   context: unknown
 ): Promise<Insights> {
-  const res = await fetch(OPENROUTER_URL, {
+  const res = await fetch(GROQ_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      // Необязательные заголовки OpenRouter для атрибуции приложения.
-      "X-Title": "PulseOps",
-      ...(process.env.NEXT_PUBLIC_SITE_URL
-        ? { "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL }
-        : {}),
     },
     body: JSON.stringify({
       model,
@@ -145,7 +133,7 @@ async function callModel(
   }
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    throw new Error(`OpenRouter ${res.status}: ${detail.slice(0, 300)}`);
+    throw new Error(`Groq ${res.status}: ${detail.slice(0, 300)}`);
   }
 
   const data = (await res.json()) as {
@@ -153,21 +141,21 @@ async function callModel(
   };
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
-    throw new Error("OpenRouter returned an empty response");
+    throw new Error("Groq returned an empty response");
   }
 
   return insightsSchema.parse(extractJson(content));
 }
 
 export async function generateInsights(events: EventRow[]): Promise<Insights> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     throw new AiNotConfiguredError();
   }
 
   const context = buildContext(events);
-  const models = process.env.OPENROUTER_MODEL
-    ? [process.env.OPENROUTER_MODEL]
+  const models = process.env.GROQ_MODEL
+    ? [process.env.GROQ_MODEL]
     : DEFAULT_MODELS;
 
   // Перебираем модели по очереди: зависшую/сбойную пропускаем и идём в следующую.
