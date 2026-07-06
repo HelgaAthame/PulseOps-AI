@@ -171,18 +171,17 @@ export async function generateInsights(events: EventRow[]): Promise<Insights> {
     : DEFAULT_MODELS;
 
   // Перебираем модели по очереди: зависшую/сбойную пропускаем и идём в следующую.
+  // Но при 429 выходим сразу — остальные бесплатные модели делят ту же квоту,
+  // добивать их бессмысленно (и лишь тратит оставшиеся запросы).
   let lastErr: unknown;
-  let anyRateLimited = false;
   for (const model of models) {
     try {
       return await callModel(apiKey, model, context);
     } catch (err) {
+      if (err instanceof AiRateLimitedError) throw err;
       lastErr = err;
-      if (err instanceof AiRateLimitedError) anyRateLimited = true;
       console.warn(`AI insights: model ${model} failed:`, (err as Error).message);
     }
   }
-  // Если хоть одна модель словила лимит — это, скорее всего, причина: отдаём 429.
-  if (anyRateLimited) throw new AiRateLimitedError();
   throw lastErr ?? new Error("AI insights: all models failed");
 }
