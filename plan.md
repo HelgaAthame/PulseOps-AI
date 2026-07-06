@@ -224,21 +224,32 @@ npm run db:migrate   # применить миграции к БД
 структурированные insights / аномалии / рекомендации.
 
 **Реализация:**
-- Модель — `claude-opus-4-8` (Anthropic API, SDK `@anthropic-ai/sdk`),
-  адаптивное мышление + `effort: "medium"`.
-- **Structured outputs** (`output_config.format` = `json_schema`) по нашей
-  схеме → гарантированно валидный JSON. На своей стороне ещё валидируем zod'ом.
-- FSD-фича `features/ai-analyst/`: `model/insight.ts` (типы + zod + JSON-схема),
-  `api/generate-insights.ts` (server-only: строит компактный контекст из
-  событий и зовёт Claude), `ui/ExplainButton.tsx` (client: кнопка + модалка
-  через `createPortal` в body, как MobileNav; loading-скелетон, аномалии по
-  severity, рекомендации).
+- **Провайдер — OpenRouter** (OpenAI-совместимый API, обычный `fetch`, без
+  SDK-зависимости). Изначально брали Anthropic/Claude, но он платный — для
+  учебного проекта заменили на **бесплатные модели OpenRouter** (суффикс
+  `:free`, стоят $0). Модель по умолчанию `openrouter/free` — авто-роутер,
+  сам выбирает доступную бесплатную модель с нужными фичами (устойчив к тому,
+  что конкретные модели приходят/уходят: та же «owl-alpha» уже стала платной).
+  Переопределяется через `OPENROUTER_MODEL`.
+- **JSON-контракт без строгого structured-outputs:** схему держим в промпте,
+  просим «только JSON», ответ парсим защитно (`extractJson` срезает ```-заборы
+  и берёт от первой `{` до последней `}`) и валидируем zod'ом. Так надёжнее на
+  бесплатных моделях, которые не все держат strict `json_schema`. Плюс шлём
+  `response_format: {type:"json_object"}` (мягкий режим) и timeout 60с.
+- FSD-фича `features/ai-analyst/`: `model/insight.ts` (типы + zod + JSON-схема
+  для промпта), `api/generate-insights.ts` (server-only: строит компактный
+  контекст из событий и зовёт OpenRouter), `ui/ExplainButton.tsx` (client:
+  кнопка + модалка через `createPortal` в body, как MobileNav; loading-скелетон,
+  аномалии по severity, рекомендации).
 - Роут `POST /api/ai/analyze`: auth → `listAllEvents` → `generateInsights`.
   Коды: 401 (нет сессии), 422 (нет данных — предложи Seed), 503 (нет
-  `ANTHROPIC_API_KEY`), 502 (ошибка модели).
-- **Env:** `ANTHROPIC_API_KEY` (backend-only) добавлен в `.env.example` и
-  `.env.local` (плейсхолдер). ⚠️ Пользователю нужно вставить свой ключ, иначе
-  роут отвечает 503. Ключ: https://console.anthropic.com/settings/keys
+  `OPENROUTER_API_KEY`), 502 (ошибка модели).
+- **Env:** `OPENROUTER_API_KEY` (+ опц. `OPENROUTER_MODEL`), backend-only.
+  Ключ бесплатный: https://openrouter.ai/keys. ⚠️ Бесплатные модели логируют
+  промпты/ответы у провайдера — у нас данные синтетические (демо-SaaS), ок.
+  Лимиты free-tier (порядка десятков запросов/день) для демо достаточно.
+- ✅ **Проверено вживую:** `openrouter/free` → `nvidia/nemotron-3-super-120b:free`,
+  HTTP 200 ~11с, валидный JSON, zod-валидация прошла, разбор осмысленный.
 
 ## 4. Realtime System — Day 5 ⬜
 Supabase Realtime: live-лента событий, live-обновление графиков —
@@ -289,12 +300,13 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 
 ## Day 6 — AI Analyst ✅
 - ✅ `POST /api/ai/analyze` — auth → все события владельца → `generateInsights`
-  (`claude-opus-4-8`, адаптивное мышление, structured outputs по JSON-схеме)
+  (**OpenRouter, бесплатная модель** `openrouter/free`; JSON-контракт через
+  промпт + защитный парсинг + zod, `response_format: json_object`)
 - ✅ Кнопка «Explain what's happening» в topbar → модалка с разбором
   (headline / summary / highlights по тональности / anomalies по severity /
   recommendations). FSD-фича `features/ai-analyst/`
-- ✅ Env-плейсхолдер `ANTHROPIC_API_KEY` (без ключа роут отвечает 503 с
-  понятным текстом). Детали — раздел «3. AI Analyst Layer» выше
+- ✅ Env `OPENROUTER_API_KEY` (+ опц. `OPENROUTER_MODEL`); без ключа роут → 503.
+  Проверено вживую (nemotron-3-super-120b:free). Детали — раздел «3» выше
 - 💡 На проде: рейт-лимит на роут + кэш ответа (сейчас каждый клик = новый вызов)
 
 ## Day 7 — Polish + Portfolio ⬜

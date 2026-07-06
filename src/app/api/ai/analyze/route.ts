@@ -31,7 +31,7 @@ export async function POST() {
   } catch (err) {
     if (err instanceof AiNotConfiguredError) {
       return NextResponse.json(
-        { error: "AI analyst is not configured. Set ANTHROPIC_API_KEY on the server." },
+        { error: "AI analyst is not configured. Set OPENROUTER_API_KEY on the server." },
         { status: 503 }
       );
     }

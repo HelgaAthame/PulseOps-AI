@@ -1,7 +1,5 @@
 import "server-only";
 
-import Anthropic from "@anthropic-ai/sdk";
-
 import { type EventRow } from "@/entities/event";
 import {
   computeAnalytics,
@@ -14,10 +12,16 @@ import { INSIGHTS_JSON_SCHEMA, insightsSchema, type Insights } from "../model/in
 // Ошибка «фича не настроена» — роут превратит её в 503 с понятным текстом.
 export class AiNotConfiguredError extends Error {
   constructor() {
-    super("ANTHROPIC_API_KEY is not set");
+    super("OPENROUTER_API_KEY is not set");
     this.name = "AiNotConfiguredError";
   }
 }
+
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+// Авто-роутер бесплатных моделей: сам выбирает доступную бесплатную модель
+// с нужными возможностями. Устойчив к тому, что конкретные модели приходят
+// и уходят. Переопределяется через OPENROUTER_MODEL (напр. конкретный `*:free`).
+const DEFAULT_MODEL = "openrouter/free";
 
 const round = (n: number) => Math.round(n);
 const pct = (n: number) => Math.round(n * 1000) / 10; // доля 0..1 → проценты, 1 знак
@@ -67,35 +71,74 @@ Explain what is happening in this business in plain, confident English, as a sha
 - Be specific and useful, not generic. No filler, no hedging, no "as an AI".
 - Format currency with a $ and thousands separators. Format rates as percentages.
 - If a metric is zero or the workspace has no data, say so plainly instead of inventing a story.
-- Highlights: 3-5 items, the most important signals. Anomalies: only genuine ones (empty array if none). Recommendations: 2-4 concrete next steps.`;
+- Highlights: 3-5 items, the most important signals. Anomalies: only genuine ones (empty array if none). Recommendations: 2-4 concrete next steps.
+
+Respond with ONLY a single valid JSON object. No markdown, no code fences, no text before or after. It must match exactly this JSON schema:
+${JSON.stringify(INSIGHTS_JSON_SCHEMA)}`;
 
 /**
- * Отправляет срез метрик в Claude и возвращает структурированные инсайты.
- * Модель — claude-opus-4-8, адаптивное мышление, structured outputs по нашей схеме.
+ * Достаёт JSON-объект из ответа модели: бесплатные модели иногда оборачивают
+ * его в ```json-заборы или добавляют пролог. Берём срез от первой { до последней }.
+ */
+function extractJson(raw: string): unknown {
+  const fenced = raw.replace(/```(?:json)?/gi, "").trim();
+  const start = fenced.indexOf("{");
+  const end = fenced.lastIndexOf("}");
+  const slice = start >= 0 && end > start ? fenced.slice(start, end + 1) : fenced;
+  return JSON.parse(slice);
+}
+
+/**
+ * Отправляет срез метрик в бесплатную модель через OpenRouter (OpenAI-совместимый
+ * API) и возвращает структурированные инсайты. Схему держим в промпте и валидируем
+ * ответ zod'ом — не полагаемся на строгий structured-outputs, который не все
+ * бесплатные модели поддерживают.
  */
 export async function generateInsights(events: EventRow[]): Promise<Insights> {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
     throw new AiNotConfiguredError();
   }
 
-  const client = new Anthropic();
   const context = buildContext(events);
 
-  const response = await client.messages.create({
-    model: "claude-opus-4-8",
-    max_tokens: 3072,
-    thinking: { type: "adaptive" },
-    output_config: {
-      effort: "medium",
-      format: {
-        type: "json_schema",
-        schema: INSIGHTS_JSON_SCHEMA,
-      },
+  const res = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      // Необязательные заголовки OpenRouter для атрибуции приложения.
+      "X-Title": "PulseOps",
+      ...(process.env.NEXT_PUBLIC_SITE_URL
+        ? { "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL }
+        : {}),
     },
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: JSON.stringify(context) }],
+    body: JSON.stringify({
+      model: process.env.OPENROUTER_MODEL ?? DEFAULT_MODEL,
+      temperature: 0.4,
+      max_tokens: 2000,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: JSON.stringify(context) },
+      ],
+    }),
+    // Бесплатные модели бывают медленными — даём запас, но не вешаемся навсегда.
+    signal: AbortSignal.timeout(60_000),
   });
 
-  const text = response.content.find((b) => b.type === "text")?.text ?? "";
-  return insightsSchema.parse(JSON.parse(text));
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`OpenRouter ${res.status}: ${detail.slice(0, 300)}`);
+  }
+
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+  };
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("OpenRouter returned an empty response");
+  }
+
+  return insightsSchema.parse(extractJson(content));
 }
