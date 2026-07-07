@@ -22,7 +22,7 @@
 | Day 4 | Analytics-движок (MRR/churn, графики) | ✅ |
 | Day 5 | Realtime (Supabase subscriptions) | ✅ |
 | Day 6 | AI-аналитик («Explain this system») | ✅ |
-| Day 7 | Полировка + деплой на Vercel | ⬜ |
+| Day 7 | Полировка + деплой на Vercel | ✅ |
 
 **Сделано в этой итерации:** Day 3 завершён; авторизация — весь код написан и
 собирается, осталось включить сервисы (Google Cloud, Cloudflare, настройки в
@@ -307,7 +307,7 @@ Drag & drop виджеты, ресайз графиков, сохранение 
   Проверено вживую (Groq llama-3.3-70b, ~2.2с). Детали — раздел «3» выше
 - 💡 На проде: рейт-лимит на роут + кэш ответа (сейчас каждый клик = новый вызов)
 
-## Day 7 — Polish + Portfolio ⬜
+## Day 7 — Polish + Portfolio ✅
 - ✅ Фирменный стиль (чёрный+золото по логотипам), тёмная тема + переключатель,
   логотип (реальный знак), английский UI, фавикон — сделано раньше срока
 - ✅ **Визуальный QA адаптива** (mobile 375, desktop 1280/1920) через Playwright
@@ -335,11 +335,18 @@ Drag & drop виджеты, ресайз графиков, сохранение 
   высоту (`MrrChart` получил опц. `className`), лента `flex-1` + скролл. На
   мобиле панели естественной высоты (график `min-h-60`). ⚠️ Скриншот-ревью
   в обеих темах — при возврате Playwright
-- ⬜ README на английском (для рекрутеров)
-- ⬜ Деплой на Vercel (+ интеграции Supabase↔GitHub/Vercel, см. бэклог)
-- ⬜ **Auth под прод:** опубликовать Google OAuth (Publish app → In production);
-  обновить в Google Cloud redirect и в Supabase Site URL / Redirect URLs на
-  прод-домен; passkeys RP ID/origins → прод-домен; hCaptcha hostname → прод.
+- ✅ README на английском (для рекрутеров) — питч, стек, FSD, AI, getting started
+- ✅ **Деплой на Vercel** — прод: https://pulse-ops-ai-five.vercel.app/
+  Пул pg ограничен (`max:5`, idleTimeout) под serverless. Билд зелёный.
+- ✅ **Auth под прод** — Supabase Site URL / Redirect URLs на прод-домен;
+  Google OAuth опубликован (Publish app), вход через Google проверен вживую;
+  passkey и невидимая капча работают
+- ✅ **Невидимая hCaptcha** — вместо видимого чекбокса (мешал passkey/OAuth:
+  срабатывали до решения капчи). Токен запрашивается незаметно по требованию
+  (`CaptchaWidget` через `execute()`), вход остаётся в один клик
+- ✅ **Поле ввода номера страницы** в пагинации `/events` (ввод + Enter/blur,
+  зажим диапазона) — проверено вживую
+- ⬜ Доп. анимации, spacing (по мелочи); скриншот-QA скелетонов/error/404
 
 ---
 
