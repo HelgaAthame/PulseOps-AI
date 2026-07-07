@@ -9,10 +9,11 @@ import { Button } from "@/shared/ui/button";
 
 export function PasskeySignInButton({
   onError,
-  captchaToken,
+  getCaptchaToken,
 }: {
   onError?: (message: string) => void;
-  captchaToken?: string;
+  /** Запрашивает свежий токен капчи прямо перед входом (невидимая hCaptcha). */
+  getCaptchaToken?: () => Promise<string | undefined>;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -21,6 +22,7 @@ export function PasskeySignInButton({
     setLoading(true);
     onError?.("");
     try {
+      const captchaToken = await getCaptchaToken?.();
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPasskey(
         captchaToken ? { options: { captchaToken } } : undefined

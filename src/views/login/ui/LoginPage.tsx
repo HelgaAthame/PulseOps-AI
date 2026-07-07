@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/shared/ui/button";
@@ -12,6 +12,7 @@ import {
   GoogleButton,
   PasskeySignInButton,
   CaptchaWidget,
+  type CaptchaHandle,
 } from "@/features/auth";
 
 type Mode = "sign-in" | "sign-up";
@@ -24,7 +25,13 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | undefined>();
+  const captchaRef = useRef<CaptchaHandle>(null);
+
+  function switchMode() {
+    setError(null);
+    setNotice(null);
+    setMode(mode === "sign-in" ? "sign-up" : "sign-in");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,10 +39,19 @@ export function LoginPage() {
     setNotice(null);
     setLoading(true);
 
-    const supabase = createClient();
-    // captchaToken передаётся только когда капча (hCaptcha) настроена; иначе
-    // undefined (Supabase проверяет капчу, только если она включена в проекте).
+    // Свежий одноразовый токен капчи запрашивается прямо сейчас (невидимо).
+    // Если капча не настроена — undefined, и вход идёт без токена.
+    let captchaToken: string | undefined;
+    try {
+      captchaToken = await captchaRef.current?.execute();
+    } catch {
+      setLoading(false);
+      setError("Captcha verification failed. Please try again.");
+      return;
+    }
     const options = captchaToken ? { captchaToken } : undefined;
+
+    const supabase = createClient();
 
     if (mode === "sign-in") {
       const { error } = await supabase.auth.signInWithPassword({
@@ -95,7 +111,12 @@ export function LoginPage() {
 
         <div className="mt-5 flex flex-col gap-2">
           <GoogleButton onError={setError} />
-          <PasskeySignInButton onError={setError} captchaToken={captchaToken} />
+          <PasskeySignInButton
+            onError={setError}
+            getCaptchaToken={() =>
+              captchaRef.current?.execute() ?? Promise.resolve(undefined)
+            }
+          />
         </div>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
@@ -132,7 +153,7 @@ export function LoginPage() {
             />
           </div>
 
-          <CaptchaWidget onToken={setCaptchaToken} />
+          <CaptchaWidget ref={captchaRef} />
 
           {notice && <p className="text-sm text-muted-foreground">{notice}</p>}
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -148,7 +169,7 @@ export function LoginPage() {
 
         <button
           type="button"
-          onClick={() => setMode(mode === "sign-in" ? "sign-up" : "sign-in")}
+          onClick={switchMode}
           className="mt-4 text-sm text-muted-foreground underline-offset-4 hover:underline"
         >
           {mode === "sign-in"

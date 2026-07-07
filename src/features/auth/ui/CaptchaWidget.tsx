@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import Script from "next/script";
 
 type HCaptchaApi = {
   render: (
     el: HTMLElement,
-    opts: { sitekey: string; callback: (token: string) => void }
+    opts: { sitekey: string; size?: "invisible" }
   ) => string;
+  execute: (
+    widgetId: string,
+    opts: { async: true }
+  ) => Promise<{ response: string }>;
+  reset: (widgetId?: string) => void;
 };
 
 declare global {
@@ -16,27 +21,33 @@ declare global {
   }
 }
 
+/** Императивный API виджета: запросить свежий токен по требованию. */
+export type CaptchaHandle = {
+  /** Возвращает одноразовый токен hCaptcha (или undefined, если капча не настроена). */
+  execute: () => Promise<string | undefined>;
+};
+
 /**
- * hCaptcha CAPTCHA. Рендерится только если задан
- * NEXT_PUBLIC_HCAPTCHA_SITE_KEY — иначе no-op (не мешает входу, пока
- * пользователь не завёл ключ). Токен уходит в onToken и передаётся в
- * supabase.auth.* через options.captchaToken.
+ * Невидимая hCaptcha. Не показывает чекбокс — токен запрашивается в момент
+ * действия (клик по «войти»/passkey) через `execute()`. Так все методы входа
+ * остаются в один клик, а капча срабатывает незаметно (или показывает challenge
+ * только при подозрении). Если NEXT_PUBLIC_HCAPTCHA_SITE_KEY не задан — no-op,
+ * `execute()` возвращает undefined и вход идёт без токена.
  */
-export function CaptchaWidget({
-  onToken,
-}: {
-  onToken: (token: string) => void;
-}) {
+export const CaptchaWidget = forwardRef<
+  CaptchaHandle,
+  Readonly<Record<never, never>>
+>(function CaptchaWidget(_props, ref) {
   const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
   const containerRef = useRef<HTMLDivElement>(null);
-  const rendered = useRef(false);
+  const widgetId = useRef<string | null>(null);
 
   const renderWidget = () => {
-    if (rendered.current || !containerRef.current || !window.hcaptcha) return;
-    rendered.current = true;
-    window.hcaptcha.render(containerRef.current, {
+    if (widgetId.current !== null || !containerRef.current || !window.hcaptcha)
+      return;
+    widgetId.current = window.hcaptcha.render(containerRef.current, {
       sitekey: siteKey!,
-      callback: onToken,
+      size: "invisible",
     });
   };
 
@@ -44,6 +55,22 @@ export function CaptchaWidget({
     renderWidget();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      async execute() {
+        if (!siteKey || widgetId.current === null || !window.hcaptcha) {
+          return undefined;
+        }
+        const { response } = await window.hcaptcha.execute(widgetId.current, {
+          async: true,
+        });
+        return response;
+      },
+    }),
+    [siteKey]
+  );
 
   if (!siteKey) return null;
 
@@ -57,4 +84,4 @@ export function CaptchaWidget({
       <div ref={containerRef} />
     </>
   );
-}
+});
