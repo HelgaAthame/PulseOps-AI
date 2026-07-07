@@ -320,7 +320,12 @@ Drag & drop виджеты, ресайз графиков, сохранение 
   `computeEventTypeCounts`, `generateEvents`/`generateHistory`, форматтеры,
   `insightsSchema` + `extractJson`. 39 тестов. `npm run test` / `test:coverage`.
   Фреймворк-glue (RSC/роуты/Supabase/drizzle) сознательно вне coverage
-- ⬜ Анимации, loading/empty states, spacing
+- ✅ **loading/error/404 states** — `loading.tsx` скелетоны (Skeleton-примитив)
+  для роутов dashboard (базовый + events + analytics), `error.tsx` error
+  boundary с повтором (`unstable_retry` — API этой версии Next), корневой
+  `not-found.tsx`. Empty-states (Analytics «No data yet», Events «No match»)
+  уже были
+- ⬜ Доп. анимации, spacing (по мелочи)
 - ✅ **Пагинация на `/events`** — серверная, `?page=N` (25 на страницу):
   `countOwnerEvents` + `listEventsPage(limit/offset)` в репозитории,
   компонент `EventsPagination` (Prev/Next + «Showing X–Y of Z»). Номер
