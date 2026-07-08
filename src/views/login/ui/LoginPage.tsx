@@ -15,6 +15,8 @@ import {
   type CaptchaHandle,
 } from "@/features/auth";
 
+import { LoginHero } from "./LoginHero";
+
 type Mode = "sign-in" | "sign-up";
 
 export function LoginPage() {
@@ -94,11 +96,14 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-sm rounded-xl border border-border bg-background p-6 shadow-sm">
-        <div className="mb-6">
-          <Logo />
-        </div>
+    <div className="grid min-h-dvh lg:grid-cols-2">
+      <LoginHero />
+
+      <div className="flex items-center justify-center bg-muted/30 p-4">
+        <div className="w-full max-w-sm rounded-xl border border-border bg-background p-6 shadow-sm">
+          <div className="mb-6 lg:hidden">
+            <Logo />
+          </div>
 
         <h1 className="text-lg font-semibold tracking-tight">
           {mode === "sign-in" ? "Sign in" : "Sign up"}
@@ -176,6 +181,7 @@ export function LoginPage() {
             ? "No account? Sign up"
             : "Already have an account? Sign in"}
         </button>
+        </div>
       </div>
     </div>
   );
