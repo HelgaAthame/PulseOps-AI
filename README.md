@@ -4,8 +4,8 @@
 
 Built as a portfolio-grade project: it's meant to look and behave like a real SaaS product, not a toy. Dark mode, custom brand styling, passwordless auth, and a fully typed, layered codebase.
 
-> **Live demo:** _add your Vercel URL after deploying_
-> **Demo login:** `demo@pulseops.app` (passkey / password)
+> **Live demo:** https://pulse-ops-ai-five.vercel.app/
+> **Demo login:** `demo@pulseops.app` · `Passkey123!` (or sign in with Google / passkey)
 
 ---
 
