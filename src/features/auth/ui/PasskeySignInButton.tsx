@@ -7,6 +7,18 @@ import { Fingerprint, Loader2 } from "lucide-react";
 import { createClient } from "@/shared/api/supabase/client";
 import { Button } from "@/shared/ui/button";
 
+/**
+ * Пользователь отменил/закрыл диалог passkey (WebAuthn NotAllowedError) или он
+ * протух. Это не ошибка — просто ничего не делаем, как будто клика не было.
+ */
+function isCancellation(err: unknown): boolean {
+  const e = err as { name?: string; message?: string };
+  return (
+    e?.name === "NotAllowedError" ||
+    /not allowed|timed out|cancell?ed|aborted/i.test(e?.message ?? "")
+  );
+}
+
 export function PasskeySignInButton({
   onError,
   getCaptchaToken,
@@ -28,13 +40,14 @@ export function PasskeySignInButton({
         captchaToken ? { options: { captchaToken } } : undefined
       );
       if (error) {
-        onError?.(error.message);
+        if (!isCancellation(error)) onError?.(error.message);
         return;
       }
       router.push("/");
       router.refresh();
     } catch (e) {
-      onError?.((e as Error).message);
+      // Отмену диалога passkey не показываем как ошибку — просто сбрасываемся.
+      if (!isCancellation(e)) onError?.((e as Error).message);
     } finally {
       setLoading(false);
     }

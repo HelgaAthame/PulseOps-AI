@@ -63,6 +63,9 @@ export const CaptchaWidget = forwardRef<
         if (!siteKey || widgetId.current === null || !window.hcaptcha) {
           return undefined;
         }
+        // Сбрасываем прошлое состояние перед каждым запросом — токен одноразовый,
+        // так каждый вызов независим (как будто страницу открыли заново).
+        window.hcaptcha.reset(widgetId.current);
         const { response } = await window.hcaptcha.execute(widgetId.current, {
           async: true,
         });
