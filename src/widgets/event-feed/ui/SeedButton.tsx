@@ -31,7 +31,7 @@ export function SeedButton() {
       ) : (
         <Database className="size-4" />
       )}
-      Seed demo data
+      Load sample data
     </Button>
   );
 }

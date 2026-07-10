@@ -54,7 +54,7 @@ export async function EventsPage({
           <p className="text-sm text-muted-foreground">
             {q
               ? `Search results for “${q}”`
-              : "Business event stream of the simulated SaaS"}
+              : "Every billing event, as it happens"}
           </p>
         </div>
         <SimulateButton count={12} />

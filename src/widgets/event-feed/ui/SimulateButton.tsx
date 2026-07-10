@@ -38,7 +38,7 @@ export function SimulateButton({ count = 8 }: SimulateButtonProps) {
       ) : (
         <Zap className="size-4" />
       )}
-      Simulate activity
+      Simulate live events
     </Button>
   );
 }

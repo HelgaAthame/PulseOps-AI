@@ -45,8 +45,8 @@ export async function AnalyticsPage() {
         <div className="flex min-h-60 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border p-8 text-center">
           <p className="text-sm font-medium">No data yet</p>
           <p className="text-sm text-muted-foreground">
-            Click “Seed demo data” to generate ~60 days of history, or simulate
-            activity on the Overview page.
+            Click “Load sample data” to generate ~60 days of history, or simulate
+            live events on the Overview page.
           </p>
         </div>
       ) : (

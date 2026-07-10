@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { ensureUserProfile } from "@/entities/user";
 import { createClient } from "@/shared/api/supabase/server";
+import { DemoBanner } from "@/widgets/demo-banner";
 import { Sidebar } from "@/widgets/sidebar";
 import { Topbar } from "@/widgets/topbar";
 
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar userId={user.id} />
+        <DemoBanner />
         <main className="min-w-0 flex-1 overflow-y-auto bg-muted/30">
           {children}
         </main>

@@ -49,7 +49,7 @@ export function LoginHero() {
 
       <div className="relative max-w-md">
         <span className="text-xs font-medium tracking-[0.25em] text-white/45 uppercase">
-          SaaS analytics
+          SaaS metrics + AI
         </span>
         <h2 className="mt-4 text-4xl leading-[1.1] font-semibold tracking-tight">
           Your SaaS,{" "}
@@ -58,14 +58,15 @@ export function LoginHero() {
           </span>
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-white/60">
-          PulseOps turns a raw stream of signups, payments and churn into live
-          metrics — with an AI analyst that reads the room for you.
+          Connect your billing webhooks and PulseOps turns signups, payments and
+          churn into live MRR, churn and conversion — with an AI analyst that
+          tells you what to do next. A lighter alternative to ChartMogul.
         </p>
 
         <ul className="mt-9 flex flex-col gap-5">
           {FEATURES.map(({ icon: Icon, title, desc }) => (
             <li key={title} className="flex items-start gap-3.5">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-[oklch(0.82_0.1_82)] ring-1 ring-white/10">
+              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/6 text-[oklch(0.82_0.1_82)] ring-1 ring-white/10">
                 <Icon className="size-4.5" />
               </span>
               <div>

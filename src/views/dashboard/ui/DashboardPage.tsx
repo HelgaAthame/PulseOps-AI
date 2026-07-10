@@ -41,7 +41,7 @@ export async function DashboardPage() {
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
         <p className="text-sm text-muted-foreground">
-          Simulated real-time SaaS metrics
+          Live revenue metrics from your billing events
         </p>
       </div>
 
