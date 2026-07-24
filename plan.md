@@ -210,7 +210,7 @@ npm run db:migrate   # применить миграции к БД
 
 # ⚡ Core System Design (исходное видение)
 
-## 1. Event System (Core engine) — Day 3 🚧
+## 1. Event System (Core engine) — Day 3 ✅
 События SaaS: `user_signed_up`, `subscription_created`, `payment_success`,
 `payment_failed`, `churn_detected`. Хранятся в таблице `events` (Supabase).
 
@@ -273,10 +273,10 @@ Drag & drop виджеты, ресайз графиков, сохранение 
 - ✅ Supabase auth (email+пароль)
 - ✅ Защита роутов дашборда (route group + проверка в layout)
 
-## Day 3 — Event system 🚧
-- 🚧 Модель events с owner/customer скоупом
-- 🚧 `/api/events/ingest` (owner из auth) + `/api/events/simulate` (мок-генератор)
-- 🚧 Event list UI (живая лента)
+## Day 3 — Event system ✅
+- ✅ Модель events с owner/customer скоупом
+- ✅ `/api/events/ingest` (owner из auth) + `/api/events/simulate` (мок-генератор)
+- ✅ Event list UI (живая лента)
 
 ## Day 4 — Analytics engine ✅
 - ✅ Расчёт MRR / ARR / churn / conversion / active users / signups / revenue —
