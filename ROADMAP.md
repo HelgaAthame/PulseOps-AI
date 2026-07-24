@@ -41,7 +41,7 @@
 
 | Фича | Приоритет | Зачем | Объём | Free? |
 |------|-----------|-------|-------|-------|
-| **MRR movement waterfall** — new / expansion / contraction / reactivation / churned MRR за период | 🔥 | Ключевая метрика ChartMogul; нетривиальный расчёт из событий | M | ✅ |
+| ~~**MRR movement waterfall**~~ ✅ — new / expansion / contraction / reactivation / churned MRR за 30 дней; `computeMrrMovement` (100% тестов) + waterfall-график на `/analytics` | 🔥 | Ключевая метрика ChartMogul; нетривиальный расчёт из событий | M | ✅ |
 | **Cohort retention** — помесячные когорты, тепловая карта/кривая удержания | 🔥 | Фирменная SaaS-аналитика; сильный визуал | M | ✅ |
 | **NRR / GRR / Quick Ratio** — net/gross revenue retention, quick ratio | ⭐ | «Взрослые» SaaS-метрики, узнаваемые инвесторами | S | ✅ |
 | **Date-range фильтр + сравнение с прошлым периодом** | ⭐ | Базовая ожидаемая функция аналитики; δ и стрелки | M | ✅ |

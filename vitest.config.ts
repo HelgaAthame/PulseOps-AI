@@ -18,6 +18,7 @@ export default defineConfig({
       include: [
         "src/entities/metric/model/analytics.ts",
         "src/entities/metric/model/timeseries.ts",
+        "src/entities/metric/model/mrr-movement.ts",
         "src/entities/event/model/event.generator.ts",
         "src/shared/lib/format.ts",
         "src/features/ai-analyst/model/insight.ts",

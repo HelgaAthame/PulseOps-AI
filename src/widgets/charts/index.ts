@@ -1,1 +1,6 @@
-export { MrrChart, SignupsChart, EventMixChart } from "./ui/charts";
+export {
+  MrrChart,
+  SignupsChart,
+  EventMixChart,
+  MrrWaterfallChart,
+} from "./ui/charts";

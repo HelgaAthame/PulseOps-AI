@@ -3,11 +3,20 @@ import {
   computeAnalytics,
   computeDailySeries,
   computeEventTypeCounts,
+  computeMrrMovement,
 } from "@/entities/metric";
 import { createClient } from "@/shared/api/supabase/server";
+import { cn } from "@/shared/lib/utils";
 import { formatCurrency, formatPercent } from "@/shared/lib/format";
-import { MrrChart, SignupsChart, EventMixChart } from "@/widgets/charts";
+import {
+  MrrChart,
+  SignupsChart,
+  EventMixChart,
+  MrrWaterfallChart,
+} from "@/widgets/charts";
 import { SeedButton } from "@/widgets/event-feed";
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export async function AnalyticsPage() {
   const supabase = await createClient();
@@ -19,6 +28,16 @@ export async function AnalyticsPage() {
   const analytics = computeAnalytics(events);
   const series = computeDailySeries(events, 60);
   const typeCounts = computeEventTypeCounts(events);
+
+  const now = Date.now();
+  const movement = computeMrrMovement(events, now - THIRTY_DAYS_MS, now);
+  const movementRows = [
+    { label: "New", value: movement.new, tone: "up" as const },
+    { label: "Expansion", value: movement.expansion, tone: "up" as const },
+    { label: "Reactivation", value: movement.reactivation, tone: "up" as const },
+    { label: "Contraction", value: movement.contraction, tone: "down" as const },
+    { label: "Churned", value: movement.churned, tone: "down" as const },
+  ];
 
   const cards = [
     { label: "MRR", value: formatCurrency(analytics.mrr) },
@@ -63,6 +82,57 @@ export async function AnalyticsPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm font-medium">MRR movement</div>
+              <div className="text-xs text-muted-foreground">Last 30 days</div>
+            </div>
+
+            {/* Числовая разбивка — она же доступный table-view к графику. */}
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              {movementRows.map((r) => (
+                <div key={r.label} className="flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      "size-1.5 rounded-full",
+                      r.tone === "up" ? "bg-emerald-500" : "bg-destructive"
+                    )}
+                  />
+                  <span className="text-muted-foreground">{r.label}</span>
+                  <span
+                    className={cn(
+                      "font-medium",
+                      r.tone === "up"
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-destructive"
+                    )}
+                  >
+                    {r.tone === "up" ? "+" : "−"}
+                    {formatCurrency(r.value)}
+                  </span>
+                </div>
+              ))}
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground">Net</span>
+                <span
+                  className={cn(
+                    "font-medium",
+                    movement.net >= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-destructive"
+                  )}
+                >
+                  {movement.net >= 0 ? "+" : "−"}
+                  {formatCurrency(Math.abs(movement.net))}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <MrrWaterfallChart movement={movement} />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

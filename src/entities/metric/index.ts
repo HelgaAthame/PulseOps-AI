@@ -14,3 +14,4 @@ export {
   type DailyPoint,
   type EventTypeCount,
 } from "./model/timeseries";
+export { computeMrrMovement, type MrrMovement } from "./model/mrr-movement";
